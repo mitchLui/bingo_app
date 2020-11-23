@@ -1,8 +1,4 @@
 from loguru import logger
-from types import SimpleNamespace
-from typing import Sized
-from PyPDF2 import PdfFileReader, PdfFileWriter, PdfFileMerger
-from PyPDF2.pdf import createRectangleAccessor
 from reportlab.pdfgen.canvas import Canvas
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Table, Paragraph
@@ -17,7 +13,7 @@ import io
 
 class Tickets:
     def __init__(self) -> None:
-        self.pdf_writer = PdfFileWriter()
+        pass
 
     def create_ticket(self, name="tickets/1/ticket.pdf") -> Canvas:
         doc = SimpleDocTemplate(name, pagesize=A4)
