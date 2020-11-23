@@ -7,9 +7,10 @@ import random
 
 
 class Create_sheet:
-    def __init__(self, names: list) -> None:
+    def __init__(self, game_number: int, entries: list) -> None:
         self.ticket_generator = Tickets()
-        self.names = names
+        self.game_number = game_number
+        self.entries = entries
         self.num_range = list(range(1, 49))
         self.numbers_needed = 6
 
@@ -22,24 +23,34 @@ class Create_sheet:
             number = num_range.pop(random_index)
             grid.append(number)
             i += 1
+        grid = [grid]
         return grid
 
     def create_ticket_data(self) -> list:
         tickets = []
-        for person in self.names:
+        for person in self.entries:
             ticket = {}
-            ticket.update({"name": person, "numbers": self.create_grid()})
+            ticket.update(
+                {
+                    "name": person["name"],
+                    "numbers": self.create_grid(),
+                    "amount": person["amount"],
+                }
+            )
             tickets.append(ticket)
+        logger.debug(tickets)
         return tickets
 
-    def create_tickets(self, ticket_data: list) -> list:
-        for ticket in ticket_data:
-            self.ticket_generator.generate_ticket(ticket)
+    def create_ticket(self, ticket_data: list) -> None:
+        for ticket_number, ticket in enumerate(ticket_data, 1):
+            self.ticket_generator.generate_ticket(
+                ticket, self.game_number, ticket_number
+            )
 
     def main(self) -> int:
         try:
             ticket_data = self.create_ticket_data()
-            self.create_tickets(ticket_data)
+            self.create_ticket(ticket_data)
             return 0
         except Exception:
             logger.error(traceback.format_exc())
@@ -48,8 +59,11 @@ class Create_sheet:
 
 class Tests(unittest.TestCase):
     def setUp(self):
-        names_list = [f"test{num}" for num in range(1, 51)]
-        self.test_class = Create_sheet(names_list)
+        names_list = [
+            {"name": f"test{num}", "amount": random.randint(1, 100)}
+            for num in range(1, 51)
+        ]
+        self.test_class = Create_sheet(1, names_list)
 
     def test_create(self):
         return_code = self.test_class.main()
