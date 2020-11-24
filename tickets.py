@@ -8,13 +8,9 @@ from reportlab.lib.units import inch
 from reportlab.lib import colors
 import unittest
 import os
-import sys
-import io
+
 
 class Tickets:
-    def __init__(self) -> None:
-        pass
-
     def create_ticket(self, name="tickets/1/ticket.pdf") -> Canvas:
         doc = SimpleDocTemplate(name, pagesize=A4)
         return doc
@@ -80,11 +76,15 @@ class Tickets:
 
 
 class Tests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.test_class = Tickets()
 
-    def test_generate_ticket(self):
-        dummy_ticket_data = {"name": "test", "numbers": [[1, 2, 3, 4, 5, 6]], "amount": 100}
+    def test_generate_ticket(self) -> None:
+        dummy_ticket_data = {
+            "name": "test",
+            "numbers": [[1, 2, 3, 4, 5, 6]],
+            "amount": 100,
+        }
         self.test_class.generate_ticket(dummy_ticket_data, 1, 1)
 
 
