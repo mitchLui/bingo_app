@@ -133,3 +133,7 @@ dmypy.json
 
 # app data
 tickets/
+
+# database
+test.db
+bingo.db
