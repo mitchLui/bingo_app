@@ -2,7 +2,7 @@ import random
 import unittest
 
 
-class Play_bingo:
+class Game:
     def __init__(self) -> None:
         pass
 
