@@ -21,9 +21,10 @@ class Database:
             {
                 "Tickets": [
                     {"name": "TicketID", "type": "INTEGER", "primary_key": True},
-                    {"name": "GameID", "type": "INTEGER"},
+                    {"name": "GameID", "type": "INTEGER", "foregin_key": True, "references": "Games(GameID)"},
                     {"name": "name", "type": "TEXT"},
-                    {"name": "bet_amount", "type": "TEXT"},
+                    {"name": "bet_amount", "type": "INTEGER"},
+                    {"name": "combination", "type": "TEXT"},
                     {"name": "created_datetime", "type": "TEXT"},
                 ]
             },
@@ -48,6 +49,9 @@ class Database:
                         field_statement += f"{field_name} {field_type} PRIMARY KEY ASC"
                     else:
                         field_statement += f"{field_name} {field_type}"
+                    fk = field.get("foregin_key", False)
+                    if fk:
+                        field_statement += f" REFERENCES {field['references']}"
                     if index + 1 != len(fields):
                         field_statement += ", "
                 field_statement += ");"
@@ -56,7 +60,6 @@ class Database:
             c.execute(statement)
         conn.commit()
         conn.close()
-        raise Exception("Please implement")
 
     def connect_db(self) -> Cursor:
         conn = sqlite3.connect(self.db_name)
