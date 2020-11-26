@@ -136,4 +136,6 @@ tickets/
 
 # database
 test.db
+test.db-journal
 bingo.db
+bingo.db-journal

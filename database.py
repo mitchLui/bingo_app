@@ -1,5 +1,6 @@
 from sqlite3.dbapi2 import Cursor
 from loguru import logger
+import datetime as dt
 import sqlite3
 import unittest
 import traceback
@@ -14,7 +15,7 @@ class Database:
                 "Games": [
                     {"name": "GameID", "type": "INTEGER", "primary_key": True},
                     {"name": "combination", "type": "TEXT"},
-                    {"name": "created_datetime", "type": "datetime"},
+                    {"name": "created_datetime", "type": "TEXT"},
                 ]
             },
             {
@@ -23,7 +24,7 @@ class Database:
                     {"name": "GameID", "type": "INTEGER"},
                     {"name": "name", "type": "TEXT"},
                     {"name": "bet_amount", "type": "TEXT"},
-                    {"name": "created_datetime", "type": "datetime"},
+                    {"name": "created_datetime", "type": "TEXT"},
                 ]
             },
         ]
@@ -34,28 +35,33 @@ class Database:
             self.init_db()
 
     def init_db(self):
-        c = self.connect_db()
+        conn, c = self.connect_db()
         for table in self.db_structure:
             for table_name, fields in table.items():
                 statement = f"CREATE TABLE {table_name}"
                 field_statement = "("
-                for field in fields:
+                for index, field in enumerate(fields):
                     field_name = field["name"]
                     field_type = field["type"]
                     pk = field.get("primary_key", False)
                     if pk:
-                        field_statement += f"{field_name} {field_type} PRIMARY KEY ASC, "
+                        field_statement += f"{field_name} {field_type} PRIMARY KEY ASC"
                     else:
-                        field_statement += f"{field_name} {field_type}, "
-                field_statement += ")"
+                        field_statement += f"{field_name} {field_type}"
+                    if index + 1 != len(fields):
+                        field_statement += ", "
+                field_statement += ");"
             statement += field_statement
             logger.debug(statement)
+            c.execute(statement)
+        conn.commit()
+        conn.close()
         raise Exception("Please implement")
 
     def connect_db(self) -> Cursor:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
-        return c
+        return conn, c
 
     def create_bingo_game(self, combinations: list):
         combinations = ",".join(combinations)
@@ -63,7 +69,7 @@ class Database:
 
     def open_bingo_game(self, game_id=1):
         results = []
-        c = self.connect_db()
+        conn, c = self.connect_db()
         try:
             fields = (game_id,)
             c.execute("SELECT * FROM games WHERE GameID=?", fields)
@@ -83,10 +89,15 @@ class Database:
 
 class Tests(unittest.TestCase):
     def setUp(self):
+        try:
+            os.remove("test.db")
+        except Exception:
+            pass
         self.test_class = Database("test.db")
 
     def test_form_statement(self):
-        self.test_class.init_db()
+        pass
+        #self.test_class.init_db()
 
 
 if __name__ == "__main__":
