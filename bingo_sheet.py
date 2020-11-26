@@ -42,7 +42,6 @@ class Create_sheet:
 
     def create_ticket(self, ticket_data: list) -> None:
         for ticket_number, ticket in enumerate(ticket_data, 1):
-            logger.debug(ticket)
             self.ticket_generator.generate_ticket(
                 ticket, self.game_number, ticket_number
             )
