@@ -4,6 +4,9 @@ A Python App for generating Bingo sheets
 
 ## To-Dos
 
-- [ ] Generate bingo sheets with data
-- [ ] Export sheets as PDFs
-- [ ] Create GUI app
+
+- [X] Database
+- [ ] App backend
+- [ ] Game mechanism
+- [X] Ticket generator
+- [ ] GUI
