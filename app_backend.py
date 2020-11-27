@@ -3,6 +3,7 @@ from bingo_sheet import Create_sheet
 from database import Database
 import unittest
 import random
+import shutil
 import os
 
 
@@ -28,7 +29,7 @@ class App_backend:
                 ticket_ids.append(ticket_id)
         return ticket_ids
 
-    def open_game(self, game_id: int) -> tuple(int, list):
+    def open_game(self, game_id: int) -> tuple:
         num_of_tickets, tickets = self.db.open_tickets_from_game(game_id)
         return num_of_tickets, tickets
 
@@ -40,6 +41,7 @@ class Tests(unittest.TestCase):
     def setUp(self) -> None:
         db_name = "test.db"
         try:
+            shutil.rmtree("tickets")
             os.remove(db_name)
         except Exception:
             pass
@@ -47,7 +49,11 @@ class Tests(unittest.TestCase):
 
     def generate_dummy_data(self):
         test_data = [
-            {"name": f"test{x}", "amount": random.randint(0, 10001)} for x in range(20)
+            {  
+                "name": f"test{x}", 
+                "amount": random.randint(0, 1000),
+                "combination": [random.randint(1,49) for _ in range(6)]
+            } for x in range(20)
         ]
         return test_data
 

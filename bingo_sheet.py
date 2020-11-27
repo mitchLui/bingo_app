@@ -5,6 +5,7 @@ from copy import deepcopy
 import unittest
 import traceback
 import random
+import shutil
 import os
 
 class Create_sheet:
@@ -53,7 +54,7 @@ class Create_sheet:
 class Tests(unittest.TestCase):
     def setUp(self):
         try:
-            os.remove("tickets")
+            shutil.rmtree("tickets")
         except Exception:
             pass
         names_list = [
@@ -62,7 +63,7 @@ class Tests(unittest.TestCase):
                 "amount": random.randint(1, 100), 
                 "combination": [random.randint(1,49) for _ in range(6)]
             }
-            for num in range(1, 51)
+            for num in range(1, 21)
         ]
         self.test_class = Create_sheet(1, names_list)
 
