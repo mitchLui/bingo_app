@@ -44,9 +44,10 @@ class Database:
     def init_db(self):
         conn, c = self.connect_db()
         for table in self.db_structure:
+            statement = f"CREATE TABLE"
             for table_name, fields in table.items():
+                statement += f" {table_name}"
                 foreign_keys = []
-                statement = f"CREATE TABLE {table_name}"
                 field_statement = "("
                 for index, field in enumerate(fields):
                     field_name = field["name"]
@@ -69,8 +70,7 @@ class Database:
                     references = [x["references"] for x in foreign_keys]
                     field_statement += f", FOREIGN KEY ({','.join(keys)}) REFERENCES {','.join(references)}"
                 field_statement += ");"
-            statement += field_statement
-            logger.debug(statement)
+                statement += field_statement
             c.execute(statement)
         conn.commit()
         conn.close()
@@ -186,17 +186,19 @@ class Database:
 
     def open_tickets_from_game(self, game_id: int) -> list:
         results = []
+        num_of_tickets = 0
         fields = (game_id,)
         statement = "SELECT * FROM Tickets WHERE GameID=?;"
         conn, c = self.connect_db()
         try:
             c.execute(statement, fields)
             results = c.fetchall()
+            num_of_tickets = len(results)
         except Exception:
             logger.error(traceback.format_exc())
         finally:
             conn.close()
-            return results
+            return num_of_tickets, results
 
     def get_all_tickets(self) -> list:
         results = []
@@ -236,6 +238,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(game_id, 2)
         self.assertEqual(combinations, "34,5,4,6")
         self.assertEqual(self.test_class.open_bingo_game(3), [])
+        #* Getting information from all games
         game_info = self.test_class.get_all_games()
         game_id1, combinations1, _ = game_info[0]
         game_id2, combinations2, _ = game_info[1]
@@ -252,6 +255,10 @@ class Tests(unittest.TestCase):
         self.assertEqual(self.test_class.create_bingo_game([1,2,3,4]), 1)
         self.assertEqual(self.test_class.create_bingo_sheet(1, "tickets/game_1/ticket_1.pdf", "test", 100, [1,2,3,4,5,6]), 1)
         self.assertEqual(self.test_class.create_bingo_sheet(1, "tickets/game_1/ticket_1.pdf", "test1", 90, [1,2,3,4,7,6]), 2)
+        #* Retrieving Tickets From Game
+        num_of_tickets, tickets = self.test_class.open_tickets_from_game(1)
+        self.assertEqual(num_of_tickets, 2)
+        logger.info(f"Tickets: {tickets}")
 
 if __name__ == "__main__":
     unittest.main()
