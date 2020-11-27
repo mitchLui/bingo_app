@@ -1,6 +1,5 @@
 from datetime import date
 from sqlite3.dbapi2 import Cursor
-from unittest.case import expectedFailure
 from loguru import logger
 import datetime as dt
 import sqlite3
