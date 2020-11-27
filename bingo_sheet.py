@@ -15,7 +15,7 @@ class Create_sheet:
         self.numbers_needed = 6
 
     def create_grid(self) -> list:
-        #TODO Check odds
+        # TODO Check odds
         grid = []
         i = 0
         num_range = deepcopy(self.num_range)
@@ -55,9 +55,7 @@ class Create_sheet:
             ticket_data = self.create_ticket_data()
             paths = self.generate_ticket(ticket_data)
             for index, ticket in enumerate(ticket_data):
-                ticket.update({
-                    "path": paths[index]
-                })
+                ticket.update({"path": paths[index]})
             return ticket_data
         except Exception:
             logger.error(traceback.format_exc())

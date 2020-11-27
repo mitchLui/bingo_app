@@ -22,7 +22,12 @@ class Database:
             {
                 "Tickets": [
                     {"name": "TicketID", "type": "INTEGER", "primary_key": True},
-                    {"name": "GameID", "type": "INTEGER", "foregin_key": True, "references": "Games (GameID)"},
+                    {
+                        "name": "GameID",
+                        "type": "INTEGER",
+                        "foregin_key": True,
+                        "references": "Games (GameID)",
+                    },
                     {"name": "path", "type": "TEXT"},
                     {"name": "name", "type": "TEXT"},
                     {"name": "bet_amount", "type": "INTEGER"},
@@ -59,11 +64,10 @@ class Database:
                     if index + 1 != len(fields):
                         field_statement += ", "
                     fk = field.get("foregin_key", False)
-                    if fk: 
-                        foreign_keys.append({
-                            "name": field_name, 
-                            "references": field["references"]
-                        })
+                    if fk:
+                        foreign_keys.append(
+                            {"name": field_name, "references": field["references"]}
+                        )
                 if foreign_keys:
                     keys = [x["name"] for x in foreign_keys]
                     references = [x["references"] for x in foreign_keys]
@@ -83,6 +87,7 @@ class Database:
        REFERENCES supplier_groups (group_id) 
     );
     """
+
     def connect_db(self) -> Cursor:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
@@ -111,7 +116,10 @@ class Database:
         combinations = ",".join(combinations)
         created_datetime = self.get_datetime()
         statement = f"INSERT INTO Games (combination, created_datetime) VALUES (?, ?);"
-        values = (combinations, created_datetime,)
+        values = (
+            combinations,
+            created_datetime,
+        )
         conn, c = self.connect_db()
         try:
             c.execute(statement, values)
@@ -151,7 +159,9 @@ class Database:
             conn.close()
             return results
 
-    def create_bingo_sheet(self, game_id: str, path: str, name: str, bet_amount: int, combination: list) -> int:
+    def create_bingo_sheet(
+        self, game_id: str, path: str, name: str, bet_amount: int, combination: list
+    ) -> int:
         ticket_id = 0
         created_datetime = self.get_datetime()
         combination = ",".join([str(x) for x in combination])
@@ -222,12 +232,12 @@ class Tests(unittest.TestCase):
         self.test_class = Database("test.db")
 
     def test_games_table(self):
-        #* Creating Games
+        # * Creating Games
         self.assertEqual(self.test_class.check_for_games(), False)
-        self.assertEqual(self.test_class.create_bingo_game([1,2,3,4]), 1)
-        self.assertEqual(self.test_class.create_bingo_game([34,5,4,6]), 2)
+        self.assertEqual(self.test_class.create_bingo_game([1, 2, 3, 4]), 1)
+        self.assertEqual(self.test_class.create_bingo_game([34, 5, 4, 6]), 2)
         self.assertEqual(self.test_class.check_for_games(), True)
-        #* Selecting Games
+        # * Selecting Games
         game_info = self.test_class.open_bingo_game(1)
         game_id, combinations, _ = game_info[0]
         self.assertEqual(game_id, 1)
@@ -237,7 +247,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(game_id, 2)
         self.assertEqual(combinations, "34,5,4,6")
         self.assertEqual(self.test_class.open_bingo_game(3), [])
-        #* Getting information from all games
+        # * Getting information from all games
         game_info = self.test_class.get_all_games()
         game_id1, combinations1, _ = game_info[0]
         game_id2, combinations2, _ = game_info[1]
@@ -247,17 +257,33 @@ class Tests(unittest.TestCase):
         self.assertEqual(combinations2, "34,5,4,6")
 
     def test_tickets_table(self):
-        #* Creating a Ticket
+        # * Creating a Ticket
         # Test FK constraints
-        self.assertEqual(self.test_class.create_bingo_sheet(1, "tickets/game_1/ticket_1.pdf", "test", 100, [1,2,3,4,5,6]), 0)
+        self.assertEqual(
+            self.test_class.create_bingo_sheet(
+                1, "tickets/game_1/ticket_1.pdf", "test", 100, [1, 2, 3, 4, 5, 6]
+            ),
+            0,
+        )
         # New Sheet
-        self.assertEqual(self.test_class.create_bingo_game([1,2,3,4]), 1)
-        self.assertEqual(self.test_class.create_bingo_sheet(1, "tickets/game_1/ticket_1.pdf", "test", 100, [1,2,3,4,5,6]), 1)
-        self.assertEqual(self.test_class.create_bingo_sheet(1, "tickets/game_1/ticket_1.pdf", "test1", 90, [1,2,3,4,7,6]), 2)
-        #* Retrieving Tickets From Game
+        self.assertEqual(self.test_class.create_bingo_game([1, 2, 3, 4]), 1)
+        self.assertEqual(
+            self.test_class.create_bingo_sheet(
+                1, "tickets/game_1/ticket_1.pdf", "test", 100, [1, 2, 3, 4, 5, 6]
+            ),
+            1,
+        )
+        self.assertEqual(
+            self.test_class.create_bingo_sheet(
+                1, "tickets/game_1/ticket_1.pdf", "test1", 90, [1, 2, 3, 4, 7, 6]
+            ),
+            2,
+        )
+        # * Retrieving Tickets From Game
         num_of_tickets, tickets = self.test_class.open_tickets_from_game(1)
         self.assertEqual(num_of_tickets, 2)
         logger.info(f"Tickets: {tickets}")
+
 
 if __name__ == "__main__":
     unittest.main()
