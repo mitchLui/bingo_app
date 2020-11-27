@@ -15,6 +15,7 @@ class Create_sheet:
         self.numbers_needed = 6
 
     def create_grid(self) -> list:
+        #TODO Check odds
         grid = []
         i = 0
         num_range = deepcopy(self.num_range)
@@ -40,20 +41,27 @@ class Create_sheet:
             tickets.append(ticket)
         return tickets
 
-    def create_ticket(self, ticket_data: list) -> None:
+    def generate_ticket(self, ticket_data: list) -> None:
+        paths = []
         for ticket_number, ticket in enumerate(ticket_data, 1):
-            self.ticket_generator.generate_ticket(
+            path = self.ticket_generator.generate_ticket(
                 ticket, self.game_number, ticket_number
             )
+            paths.append(path)
+        return paths
 
-    def main(self) -> int:
+    def create_tickets(self) -> list:
         try:
             ticket_data = self.create_ticket_data()
-            self.create_ticket(ticket_data)
-            return 0
+            paths = self.generate_ticket(ticket_data)
+            for index, ticket in enumerate(ticket_data):
+                ticket.update({
+                    "path": paths[index]
+                })
+            return ticket_data
         except Exception:
             logger.error(traceback.format_exc())
-            return 1
+            return []
 
 
 class Tests(unittest.TestCase):
@@ -65,8 +73,7 @@ class Tests(unittest.TestCase):
         self.test_class = Create_sheet(1, names_list)
 
     def test_create(self):
-        return_code = self.test_class.main()
-        self.assertEqual(return_code, 0)
+        logger.info(self.test_class.create_tickets())
 
 
 if __name__ == "__main__":
