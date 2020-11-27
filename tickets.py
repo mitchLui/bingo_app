@@ -64,13 +64,6 @@ class Tickets:
         return game_dir
 
     def generate_ticket(self, ticket: dict, game_number=1, ticket_number=1) -> None:
-        logger.info(f"CREATING TICKET: ")
-        logger.info(f"Game number: {game_number}, Ticket number: {ticket_number}")
-        logger.info(f"Name: {ticket['name']}")
-        logger.info(f"Amount: {ticket['amount']}")
-        logger.info(
-            f"Numbers: {', '.join([str(elem) for elem in ticket['numbers'][0]])}"
-        )
         game_dir = self.create_dir(game_number)
         path = f"{game_dir}/ticket_{ticket_number}.pdf"
         doc = self.create_ticket(path)
