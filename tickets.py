@@ -72,7 +72,8 @@ class Tickets:
             f"Numbers: {', '.join([str(elem) for elem in ticket['numbers'][0]])}"
         )
         game_dir = self.create_dir(game_number)
-        doc = self.create_ticket(name=f"{game_dir}/ticket_{ticket_number}.pdf")
+        path = f"{game_dir}/ticket_{ticket_number}.pdf"
+        doc = self.create_ticket(path)
         elements = []
         elements = self.add_name_to_ticket(elements, ticket["name"])
         elements = self.add_number_to_ticket(elements, game_number, ticket_number)
@@ -80,6 +81,7 @@ class Tickets:
         elements = self.add_grid_to_ticket(elements, ticket["numbers"])
         doc.build(elements)
         logger.info(f"Ticket {game_number}-{ticket_number} Generated.")
+        return path
 
 
 class Tests(unittest.TestCase):
