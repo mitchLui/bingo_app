@@ -77,17 +77,7 @@ class Database:
             c.execute(statement)
         conn.commit()
         conn.close()
-
-    """
-    CREATE TABLE suppliers (
-    supplier_id   INTEGER PRIMARY KEY,
-    supplier_name TEXT    NOT NULL,
-    group_id      INTEGER NOT NULL,
-    FOREIGN KEY (group_id)
-       REFERENCES supplier_groups (group_id) 
-    );
-    """
-
+        
     def connect_db(self) -> Cursor:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
