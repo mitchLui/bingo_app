@@ -23,7 +23,7 @@ class Database:
             {
                 "Tickets": [
                     {"name": "TicketID", "type": "INTEGER", "primary_key": True},
-                    {"name": "GameID", "type": "INTEGER", "foregin_key": True, "references": "Games(GameID)"},
+                    {"name": "GameID", "type": "INTEGER", "foregin_key": True, "references": "Games (GameID)"},
                     {"name": "path", "type": "TEXT"},
                     {"name": "name", "type": "TEXT"},
                     {"name": "bet_amount", "type": "INTEGER"},
@@ -45,6 +45,7 @@ class Database:
         conn, c = self.connect_db()
         for table in self.db_structure:
             for table_name, fields in table.items():
+                foreign_keys = []
                 statement = f"CREATE TABLE {table_name}"
                 field_statement = "("
                 for index, field in enumerate(fields):
@@ -54,21 +55,39 @@ class Database:
                     if pk:
                         field_statement += f"{field_name} {field_type} PRIMARY KEY ASC"
                     else:
-                        field_statement += f"{field_name} {field_type}"
-                    fk = field.get("foregin_key", False)
-                    if fk:
-                        field_statement += f" REFERENCES {field['references']}"
+                        field_statement += f"{field_name} {field_type} NOT NULL"
                     if index + 1 != len(fields):
                         field_statement += ", "
+                    fk = field.get("foregin_key", False)
+                    if fk: 
+                        foreign_keys.append({
+                            "name": field_name, 
+                            "references": field["references"]
+                        })
+                if foreign_keys:
+                    keys = [x["name"] for x in foreign_keys]
+                    references = [x["references"] for x in foreign_keys]
+                    field_statement += f", FOREIGN KEY ({','.join(keys)}) REFERENCES {','.join(references)}"
                 field_statement += ");"
             statement += field_statement
+            logger.debug(statement)
             c.execute(statement)
         conn.commit()
         conn.close()
 
+    """
+    CREATE TABLE suppliers (
+    supplier_id   INTEGER PRIMARY KEY,
+    supplier_name TEXT    NOT NULL,
+    group_id      INTEGER NOT NULL,
+    FOREIGN KEY (group_id)
+       REFERENCES supplier_groups (group_id) 
+    );
+    """
     def connect_db(self) -> Cursor:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
+        c.execute("PRAGMA foreign_keys = 1;")
         return conn, c
 
     def check_for_games(self):
@@ -133,11 +152,12 @@ class Database:
             conn.close()
             return results
 
-    def create_bingo_sheet(self, game_id: str, path: str, name: str, bet_amount: int) -> int:
+    def create_bingo_sheet(self, game_id: str, path: str, name: str, bet_amount: int, combination: list) -> int:
         ticket_id = 0
         created_datetime = self.get_datetime()
-        statement = f"INSERT INTO Tickets (GameID, path, name, bet_amount, created_datetime) VALUES (?, ?, ?, ?, ?);"
-        values = (game_id, path, name, bet_amount, created_datetime)
+        combination = ",".join([str(x) for x in combination])
+        statement = f"INSERT INTO Tickets (GameID, path, name, bet_amount, combination, created_datetime) VALUES (?, ?, ?, ?, ?, ?);"
+        values = (game_id, path, name, bet_amount, combination, created_datetime)
         conn, c = self.connect_db()
         try:
             c.execute(statement, values)
@@ -225,11 +245,13 @@ class Tests(unittest.TestCase):
         self.assertEqual(combinations2, "34,5,4,6")
 
     def test_tickets_table(self):
-        pass
-
-    def test_tickets_without_game(self):
-        pass
-
+        #* Creating a Ticket
+        # Test FK constraints
+        self.assertEqual(self.test_class.create_bingo_sheet(1, "tickets/game_1/ticket_1.pdf", "test", 100, [1,2,3,4,5,6]), 0)
+        # New Sheet
+        self.assertEqual(self.test_class.create_bingo_game([1,2,3,4]), 1)
+        self.assertEqual(self.test_class.create_bingo_sheet(1, "tickets/game_1/ticket_1.pdf", "test", 100, [1,2,3,4,5,6]), 1)
+        self.assertEqual(self.test_class.create_bingo_sheet(1, "tickets/game_1/ticket_1.pdf", "test1", 90, [1,2,3,4,7,6]), 2)
 
 if __name__ == "__main__":
     unittest.main()
