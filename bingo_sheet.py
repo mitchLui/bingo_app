@@ -1,10 +1,11 @@
+from unittest.case import expectedFailure
 from loguru import logger
 from tickets import Tickets
 from copy import deepcopy
 import unittest
 import traceback
 import random
-
+import os
 
 class Create_sheet:
     def __init__(self, game_number: int, entries: list) -> None:
@@ -14,19 +15,6 @@ class Create_sheet:
         self.num_range = list(range(1, 49))
         self.numbers_needed = 6
 
-    def create_grid(self) -> list:
-        # TODO Check odds
-        grid = []
-        i = 0
-        num_range = deepcopy(self.num_range)
-        while i != self.numbers_needed:
-            random_index = random.randint(0, len(num_range) - 1)
-            number = num_range.pop(random_index)
-            grid.append(number)
-            i += 1
-        grid = [grid]
-        return grid
-
     def create_ticket_data(self) -> list:
         tickets = []
         for person in self.entries:
@@ -34,7 +22,7 @@ class Create_sheet:
             ticket.update(
                 {
                     "name": person["name"],
-                    "numbers": self.create_grid(),
+                    "numbers": [person["combination"]],
                     "amount": person["amount"],
                 }
             )
@@ -64,8 +52,16 @@ class Create_sheet:
 
 class Tests(unittest.TestCase):
     def setUp(self):
+        try:
+            os.remove("tickets")
+        except Exception:
+            pass
         names_list = [
-            {"name": f"test{num}", "amount": random.randint(1, 100)}
+            {
+                "name": f"test{num}",
+                "amount": random.randint(1, 100), 
+                "combination": [random.randint(1,49) for _ in range(6)]
+            }
             for num in range(1, 51)
         ]
         self.test_class = Create_sheet(1, names_list)
