@@ -69,8 +69,6 @@ class Tickets:
         os.chdir(f"{os.getcwd()}/tickets/game_{game_number}")
         ticket_number = len(os.listdir()) + 1
         path = f"ticket_{ticket_number}.pdf"
-        logger.debug(os.getcwd())
-        logger.debug(path)
         doc = self.create_ticket(path)
         elements = []
         elements = self.add_name_to_ticket(elements, ticket["name"])
@@ -80,7 +78,6 @@ class Tickets:
         doc.build(elements)
         logger.info(f"Ticket {game_number}-{ticket_number} Generated.")
         os.chdir(original_path)
-        logger.debug(os.getcwd())
         path = f"game_{game_number}/{path}"
         return path
 
