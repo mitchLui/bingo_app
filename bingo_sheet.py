@@ -8,6 +8,7 @@ import random
 import shutil
 import os
 
+
 class Create_sheet:
     def __init__(self, game_number: int, entries: list) -> None:
         self.ticket_generator = Tickets()
@@ -60,8 +61,8 @@ class Tests(unittest.TestCase):
         names_list = [
             {
                 "name": f"test{num}",
-                "amount": random.randint(1, 100), 
-                "combination": [random.randint(1,49) for _ in range(6)]
+                "amount": random.randint(1, 100),
+                "combination": [random.randint(1, 49) for _ in range(6)],
             }
             for num in range(1, 21)
         ]
