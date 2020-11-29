@@ -8,8 +8,9 @@ import os
 
 
 class App_backend:
-    def __init__(self, db_name = "bingo.db") -> None:
+    def __init__(self, db_name="bingo.db") -> None:
         self.db = Database(db_name)
+        self.game_id = 0
 
     def create_game(self, combinations: list) -> int:
         game_id = self.db.create_bingo_game(combinations)
@@ -25,16 +26,32 @@ class App_backend:
                 combinations = ticket_datum["numbers"][0]
                 amount = ticket_datum["amount"]
                 path = ticket_datum["path"]
-                ticket_id = self.db.create_bingo_sheet(game_id, path, name, amount, combinations)
+                ticket_id = self.db.create_bingo_sheet(
+                    game_id, path, name, amount, combinations
+                )
                 ticket_ids.append(ticket_id)
         return ticket_ids
 
     def open_game(self, game_id: int) -> tuple:
-        num_of_tickets, tickets = self.db.open_tickets_from_game(game_id)
+        tickets = []
+        num_of_tickets, ticket_data = self.db.open_tickets_from_game(game_id)
+        for ticket_datum in ticket_data:
+            logger.debug(ticket_datum)
+            ticket_id, game_id, path, name, amount, combinations, created_datetime = ticket_datum
+            tickets.append({
+                "ticket_id": ticket_id,
+                "game_id": game_id,
+                "path": path,
+                "name": name,
+                "amount": amount,
+                "combinations": combinations,
+                "created_datetime": created_datetime
+            })
         return num_of_tickets, tickets
 
-    def open_ticket(self):
-        pass
+    def open_ticket(self, ticket_id: int):
+        ticket_info = self.db.open_specific_bingo_sheet(ticket_id)
+        return ticket_info
 
 
 class Tests(unittest.TestCase):
@@ -49,11 +66,12 @@ class Tests(unittest.TestCase):
 
     def generate_dummy_data(self):
         test_data = [
-            {  
-                "name": f"test{x}", 
+            {
+                "name": f"test{x}",
                 "amount": random.randint(0, 1000),
-                "combination": [random.randint(1,49) for _ in range(6)]
-            } for x in range(20)
+                "combination": [random.randint(1, 49) for _ in range(6)],
+            }
+            for x in range(20)
         ]
         return test_data
 
@@ -65,6 +83,10 @@ class Tests(unittest.TestCase):
         num_of_tickets, tickets = self.test_class.open_game(1)
         logger.info(num_of_tickets)
         logger.info(tickets)
+    
+        ticket_info = self.test_class.open_ticket(2)
+
+
 
 
 if __name__ == "__main__":
