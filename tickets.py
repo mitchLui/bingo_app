@@ -56,16 +56,21 @@ class Tickets:
         return elements
 
     def create_dir(self, game_number: int) -> None:
-        game_dir = f"tickets/game_{game_number}"
-        if not os.path.exists("tickets"):
+        try:
             os.mkdir("tickets")
-        if not os.path.exists(game_dir):
-            os.mkdir(game_dir)
-        return game_dir
+            os.chdir("tickets")
+            os.mkdir(f"game_{game_number}")
+        except Exception:
+            pass
 
-    def generate_ticket(self, ticket: dict, game_number=1, ticket_number=1) -> None:
-        game_dir = self.create_dir(game_number)
-        path = f"{game_dir}/ticket_{ticket_number}.pdf"
+    def generate_ticket(self, ticket: dict, game_number=1) -> None:
+        original_path = os.getcwd()
+        self.create_dir(game_number)
+        os.chdir(f"{os.getcwd()}/tickets/game_{game_number}")
+        ticket_number = len(os.listdir()) + 1
+        path = f"ticket_{ticket_number}.pdf"
+        logger.debug(os.getcwd())
+        logger.debug(path)
         doc = self.create_ticket(path)
         elements = []
         elements = self.add_name_to_ticket(elements, ticket["name"])
@@ -74,6 +79,9 @@ class Tickets:
         elements = self.add_grid_to_ticket(elements, ticket["numbers"])
         doc.build(elements)
         logger.info(f"Ticket {game_number}-{ticket_number} Generated.")
+        os.chdir(original_path)
+        logger.debug(os.getcwd())
+        path = f"game_{game_number}/{path}"
         return path
 
 
