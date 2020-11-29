@@ -38,14 +38,14 @@ class Database:
         ]
         self.check_for_database()
 
-    def check_for_database(self):
+    def check_for_database(self) -> None:
         if not os.path.exists(self.db_name):
             self.init_db()
 
-    def get_datetime(self):
+    def get_datetime(self) -> str:
         return dt.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
-    def init_db(self):
+    def init_db(self) -> None:
         conn, c = self.connect_db()
         for table in self.db_structure:
             statement = f"CREATE TABLE"
@@ -77,14 +77,14 @@ class Database:
             c.execute(statement)
         conn.commit()
         conn.close()
-        
+
     def connect_db(self) -> Cursor:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
         c.execute("PRAGMA foreign_keys = 1;")
         return conn, c
 
-    def check_for_games(self):
+    def check_for_games(self) -> bool:
         result = False
         conn, c = self.connect_db()
         try:
@@ -169,7 +169,7 @@ class Database:
             conn.close()
             return ticket_id
 
-    def open_specific_bingo_sheet(self, ticket_id: int) -> int:
+    def open_specific_bingo_sheet(self, ticket_id: int) -> list:
         results = []
         fields = (ticket_id,)
         statement = "SELECT * FROM Tickets WHERE TicketID=?;"
