@@ -37,16 +37,26 @@ class App_backend:
         num_of_tickets, ticket_data = self.db.open_tickets_from_game(game_id)
         for ticket_datum in ticket_data:
             logger.debug(ticket_datum)
-            ticket_id, game_id, path, name, amount, combinations, created_datetime = ticket_datum
-            tickets.append({
-                "ticket_id": ticket_id,
-                "game_id": game_id,
-                "path": path,
-                "name": name,
-                "amount": amount,
-                "combinations": combinations,
-                "created_datetime": created_datetime
-            })
+            (
+                ticket_id,
+                game_id,
+                path,
+                name,
+                amount,
+                combinations,
+                created_datetime,
+            ) = ticket_datum
+            tickets.append(
+                {
+                    "ticket_id": ticket_id,
+                    "game_id": game_id,
+                    "path": path,
+                    "name": name,
+                    "amount": amount,
+                    "combinations": combinations,
+                    "created_datetime": created_datetime,
+                }
+            )
         return num_of_tickets, tickets
 
     def open_ticket(self, ticket_id: int):
@@ -83,10 +93,8 @@ class Tests(unittest.TestCase):
         num_of_tickets, tickets = self.test_class.open_game(1)
         logger.info(num_of_tickets)
         logger.info(tickets)
-    
+
         ticket_info = self.test_class.open_ticket(2)
-
-
 
 
 if __name__ == "__main__":

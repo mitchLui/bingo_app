@@ -4,6 +4,8 @@ from loguru import logger
 from app_backend import App_backend
 import random
 import traceback
+
+
 class App:
     def __init__(self) -> None:
         self.app_backend = App_backend()
@@ -12,20 +14,20 @@ class App:
         delete_item(window)
 
     def generate_winning_combination(self) -> list:
-        #TODO ADD ODDS, MUST CONFIRM W/ CLIENT
-        numbers = list(range(1,49))
+        # TODO ADD ODDS, MUST CONFIRM W/ CLIENT
+        numbers = list(range(1, 49))
         required_numbers = 35
         win_nums = []
         i = 1
         while i != required_numbers:
-            index = random.randint(0, len(numbers)-1)
+            index = random.randint(0, len(numbers) - 1)
             number = numbers.pop(index)
             win_nums.append(number)
             i += 1
         return win_nums
 
     def create_game(self, sender, data):
-        #TODO Implement
+        # TODO Implement
         pass
 
     def create_game_window(self, sender, data):
@@ -34,20 +36,21 @@ class App:
         except Exception:
             pass
         numbers = self.generate_winning_combination()
-        with window("Create New Game", autosize = True):
+        with window("Create New Game", autosize=True):
             add_text("Winning numbers:")
-            for index in range(1, len(numbers)+1):
+            for index in range(1, len(numbers) + 1):
                 if index % 5 == 0:
-                    add_text(f"{numbers[index-5]} {numbers[index-4]} {numbers[index-3]} {numbers[index-2]} {numbers[index-1]}")
+                    add_text(
+                        f"{numbers[index-5]} {numbers[index-4]} {numbers[index-3]} {numbers[index-2]} {numbers[index-1]}"
+                    )
             add_button("Create Game", callback=self.create_game)
 
-
     def open_game(self, sender, data):
-        #TODO Implement
+        # TODO Implement
         pass
 
     def open_game_window(self, sender, data):
-        #TODO Implement
+        # TODO Implement
         pass
 
     def check_numbers(self, numbers: list) -> tuple:
@@ -77,10 +80,10 @@ class App:
         return False, text
 
     def create_ticket(self, sender, data):
-        #TODO Implement
+        # TODO Implement
         name = get_value("ticket_name")
         valid_name, name = self.check_text(name)
-        numbers = [get_value(f"ticket_num_{num}") for num in range(1,7)]
+        numbers = [get_value(f"ticket_num_{num}") for num in range(1, 7)]
         valid_numbers, error, numbers = self.check_numbers(numbers)
         logger.debug(f"{valid_numbers}, {error}, {numbers}")
         if valid_name and valid_numbers:
@@ -97,7 +100,7 @@ class App:
         with window("Error", on_close=self.delete_error):
             add_text(error)
             add_button("OK", callback=self.delete_error)
-    
+
     def delete_error(self, sender, data):
         delete_item("Error")
 
@@ -106,7 +109,7 @@ class App:
             self.close_window("Create New Ticket")
         except Exception:
             pass
-        with window("Create New Ticket", autosize = True):
+        with window("Create New Ticket", autosize=True):
             add_input_text("Name", source="ticket_name")
             add_input_text("Number 1", source="ticket_num_1")
             add_input_text("Number 2", source="ticket_num_2")
@@ -114,7 +117,6 @@ class App:
             add_input_text("Number 4", source="ticket_num_4")
             add_input_text("Number 5", source="ticket_num_5")
             add_input_text("Number 6", source="ticket_num_6")
-            #TODO CREATE
             add_button("Create Ticket", callback=self.create_ticket)
 
     def open_ticket(self, sender, data):
@@ -123,7 +125,7 @@ class App:
     def open_ticket_window(self, sender, data):
         pass
 
-    def show(self):        
+    def show(self):
         with window("Bingo"):
             set_main_window_size(1024, 760)
             set_main_window_resizable(True)
@@ -143,6 +145,7 @@ class App:
 
         start_dearpygui(primary_window="Bingo")
 
+
 if __name__ == "__main__":
     app = App()
-    app.show()  
+    app.show()
