@@ -3,12 +3,26 @@ from dearpygui.simple import *
 from loguru import logger
 from app_backend import App_backend
 import random
+import os
 import traceback
 
 
 class App:
     def __init__(self) -> None:
-        self.app_backend = App_backend()
+        self.cwd = os.getcwd()
+        logger.info(f"CWD: {self.cwd}")
+        self.init = False
+        self.app_backend = None
+
+    def check_init(self) -> None:
+        if not self.init:
+            self.app_backend = App_backend(os.getcwd(), "bingo.db")
+            self.init = True
+
+    def verify_game(self, sender, data):
+        #TODO CHECK
+        delete_item("Game")
+
 
     def close_window(self, window: str):
         delete_item(window)
@@ -33,6 +47,8 @@ class App:
     def create_game_window(self, sender, data):
         try:
             self.close_window("Create New Game")
+            self.close_window("Load Game")
+            self.check_init()
         except Exception:
             pass
         numbers = self.generate_winning_combination()
@@ -72,29 +88,55 @@ class App:
         finally:
             return valid, error, numbers
 
-    def check_text(self, text: str):
+    def check_text(self, text: str) -> tuple:
         if text and not text.isspace():
             text = text.rstrip()
             text = text.lstrip()
             return True, text
         return False, text
 
+    def check_number(self, number: str) -> tuple:
+        valid = False
+        try:
+            number = int(number)
+            valid = True
+        except:
+            pass
+        finally:
+            return valid, number
+
     def create_ticket(self, sender, data):
         # TODO Implement
         name = get_value("ticket_name")
         valid_name, name = self.check_text(name)
+        bet_amount = get_value("bet_amount")
+        valid_amount, bet_amount = self.check_number(bet_amount)
         numbers = [get_value(f"ticket_num_{num}") for num in range(1, 7)]
         valid_numbers, error, numbers = self.check_numbers(numbers)
-        logger.debug(f"{valid_numbers}, {error}, {numbers}")
-        if valid_name and valid_numbers:
+        if valid_name and valid_numbers and valid_amount:
             numbers = [int(x) for x in numbers]
-            logger.debug(f"NAME: {name}, NUMBERS: {numbers}")
-
+            entry = {"name": name, "amount": bet_amount, "numbers": numbers}
+            game_id = self.app_backend.game_id
+            if game_id == 0:
+                self.error_window("Please create or choose a game.")
+            else:
+                self.app_backend.create_ticket(game_id, entry)
         else:
             if not valid_name:
-                self.error_window("Name is not valid.")
-            else:
-                self.error_window(error)
+                error = "Name and/or bet amount is not valid."
+            elif not valid_amount:
+                error = "Bet amount is not valid."
+            self.error_window(error)
+        delete_item("Create New Ticket")
+        with window("Confirm new ticket", on_close=self.delete_new_ticket_confirmation):
+            add_text("Ticket created with the following information: ")
+            add_text(f"Name: {name}")
+            add_text(f"Bet Amount: {bet_amount}")
+            add_text(f"Numbers: {', '.join([str(x) for x in numbers])}")
+            add_button("Close Window", callback=self.delete_new_ticket_confirmation)
+
+    def delete_new_ticket_confirmation(self, sender, data):
+        delete_item("Confirm new ticket")
 
     def error_window(self, error: str):
         with window("Error", on_close=self.delete_error):
@@ -107,10 +149,13 @@ class App:
     def create_ticket_window(self, sender, data):
         try:
             self.close_window("Create New Ticket")
+            self.close_window("Load Game")
+            self.check_init()
         except Exception:
             pass
         with window("Create New Ticket", autosize=True):
             add_input_text("Name", source="ticket_name")
+            add_input_text("Amount", source="bet_amount")
             add_input_text("Number 1", source="ticket_num_1")
             add_input_text("Number 2", source="ticket_num_2")
             add_input_text("Number 3", source="ticket_num_3")
@@ -142,6 +187,11 @@ class App:
 
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
+        
+        with window("Load Game", autosize=True, on_close=self.verify_game):
+
+            add_button("Create new game", callback=self.create_game_window)
+            add_button("Load game", callback=self.open_game_window)
 
         start_dearpygui(primary_window="Bingo")
 
