@@ -107,6 +107,7 @@ class App:
 
     def create_ticket(self, sender, data):
         # TODO Implement
+        success = False
         name = get_value("ticket_name")
         valid_name, name = self.check_text(name)
         bet_amount = get_value("bet_amount")
@@ -121,19 +122,21 @@ class App:
                 self.error_window("Please create or choose a game.")
             else:
                 self.app_backend.create_ticket(game_id, entry)
+                success = True
         else:
             if not valid_name:
                 error = "Name and/or bet amount is not valid."
             elif not valid_amount:
                 error = "Bet amount is not valid."
             self.error_window(error)
-        delete_item("Create New Ticket")
-        with window("Confirm new ticket", on_close=self.delete_new_ticket_confirmation):
-            add_text("Ticket created with the following information: ")
-            add_text(f"Name: {name}")
-            add_text(f"Bet Amount: {bet_amount}")
-            add_text(f"Numbers: {', '.join([str(x) for x in numbers])}")
-            add_button("Close Window", callback=self.delete_new_ticket_confirmation)
+        if success:
+            delete_item("Create New Ticket")
+            with window("Confirm new ticket", on_close=self.delete_new_ticket_confirmation):
+                add_text("Ticket created with the following information: ")
+                add_text(f"Name: {name}")
+                add_text(f"Bet Amount: {bet_amount}")
+                add_text(f"Numbers: {', '.join([str(x) for x in numbers])}")
+                add_button("Close Window", callback=self.delete_new_ticket_confirmation)
 
     def delete_new_ticket_confirmation(self, sender, data):
         delete_item("Confirm new ticket")

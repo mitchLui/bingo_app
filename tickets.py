@@ -67,7 +67,7 @@ class Tickets:
         original_path = os.getcwd()
         self.create_dir(game_number)
         logger.debug(f"{os.getcwd()}")
-        os.chdir(f"{os.getcwd()}/tickets/game_{game_number}")
+        os.chdir(f"{os.getcwd()}/game_{game_number}")
         ticket_number = len(os.listdir()) + 1
         path = f"ticket_{ticket_number}.pdf"
         doc = self.create_ticket(path)
