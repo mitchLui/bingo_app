@@ -8,9 +8,10 @@ import os
 
 
 class App_backend:
-    def __init__(self, db_name="bingo.db") -> None:
-        self.db = Database(db_name)
-        self.game_id = 0
+    def __init__(self, directory: str, db_name="bingo.db") -> None:
+        logger.info(directory)
+        self.db = Database(directory, db_name)
+        self.game_id = 1
 
     def create_game(self, combinations: list) -> int:
         game_id = self.db.create_bingo_game(combinations)
@@ -19,18 +20,16 @@ class App_backend:
     def create_ticket(self, game_id: int, entries: list) -> list:
         cs = Create_sheet(game_id, entries)
         ticket_data = cs.create_tickets()
-        ticket_ids = []
+        ticket_id = 0
         if ticket_data:
-            for ticket_datum in ticket_data:
-                name = ticket_datum["name"]
-                combinations = ticket_datum["numbers"][0]
-                amount = ticket_datum["amount"]
-                path = ticket_datum["path"]
-                ticket_id = self.db.create_bingo_sheet(
-                    game_id, path, name, amount, combinations
-                )
-                ticket_ids.append(ticket_id)
-        return ticket_ids
+            name = ticket_data["name"]
+            combinations = ticket_data["numbers"][0]
+            amount = ticket_data["amount"]
+            path = ticket_data["path"]
+            ticket_id = self.db.create_bingo_sheet(
+                game_id, path, name, amount, combinations
+            )
+        return ticket_id
 
     def open_game(self, game_id: int) -> tuple:
         tickets = []
@@ -72,7 +71,7 @@ class Tests(unittest.TestCase):
             os.remove(db_name)
         except Exception:
             pass
-        self.test_class = App_backend(db_name)
+        self.test_class = App_backend(os.getcwd, db_name)
 
     def generate_dummy_data(self):
         test_data = [
