@@ -9,8 +9,9 @@ import os
 
 
 class Database:
-    def __init__(self, db_name="bingo.db") -> None:
+    def __init__(self, cwd: str, db_name="bingo.db") -> None:
         self.db_name = db_name
+        self.db_path = f"{cwd}/{db_name}"
         self.db_structure = [
             {
                 "Games": [
@@ -39,14 +40,21 @@ class Database:
         self.check_for_database()
 
     def check_for_database(self) -> None:
-        if not os.path.exists(self.db_name):
+        db_exists = os.path.exists(self.db_path)
+        if not db_exists:
             self.init_db()
+        #!DEBUG
+        else:
+            conn, c = self.connect_db()
+            logger.debug(self.db_path)
+        #!DEBUG
 
     def get_datetime(self) -> str:
         return dt.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
 
     def init_db(self) -> None:
         conn, c = self.connect_db()
+        c.execute("PRAGMA foreign_keys = 1;")
         for table in self.db_structure:
             statement = f"CREATE TABLE"
             for table_name, fields in table.items():
@@ -79,9 +87,8 @@ class Database:
         conn.close()
 
     def connect_db(self) -> Cursor:
-        conn = sqlite3.connect(self.db_name)
+        conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
-        c.execute("PRAGMA foreign_keys = 1;")
         return conn, c
 
     def check_for_games(self) -> bool:
@@ -219,7 +226,7 @@ class Tests(unittest.TestCase):
             os.remove("test.db")
         except Exception:
             pass
-        self.test_class = Database("test.db")
+        self.test_class = Database(os.getcwd(), "test.db")
 
     def test_games_table(self):
         # * Creating Games
