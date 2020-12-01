@@ -37,20 +37,17 @@ class Create_sheet:
 
 
 class Tests(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         try:
             shutil.rmtree("tickets")
         except Exception:
             pass
-        names_list = [
-            {
-                "name": f"test{num}",
-                "amount": random.randint(1, 100),
-                "numbers": [random.randint(1, 49) for _ in range(6)],
-            }
-            for num in range(1, 21)
-        ]
-        self.test_class = Create_sheet(1, names_list)
+        entry = {
+            "name": f"test",
+            "amount": random.randint(1, 100),
+            "numbers": [random.randint(1, 49) for _ in range(6)]
+        }
+        self.test_class = Create_sheet(1, entry)
 
     def test_create(self):
         logger.info(self.test_class.create_tickets())
