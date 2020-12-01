@@ -35,7 +35,7 @@ class Database:
                     {"name": "combination", "type": "TEXT"},
                     {"name": "created_datetime", "type": "TEXT"},
                 ]
-            },
+            }
         ]
         self.check_for_database()
 
