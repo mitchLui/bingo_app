@@ -20,9 +20,8 @@ class App:
             self.init = True
 
     def verify_game(self, sender, data):
-        #TODO CHECK
+        # TODO CHECK
         delete_item("Game")
-
 
     def close_window(self, window: str):
         delete_item(window)
@@ -131,7 +130,9 @@ class App:
             self.error_window(error)
         if success:
             delete_item("Create New Ticket")
-            with window("Confirm new ticket", on_close=self.delete_new_ticket_confirmation):
+            with window(
+                "Confirm new ticket", on_close=self.delete_new_ticket_confirmation
+            ):
                 add_text("Ticket created with the following information: ")
                 add_text(f"Name: {name}")
                 add_text(f"Bet Amount: {bet_amount}")
@@ -190,7 +191,7 @@ class App:
 
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
-        
+
         with window("Load Game", autosize=True, on_close=self.verify_game):
 
             add_button("Create new game", callback=self.create_game_window)

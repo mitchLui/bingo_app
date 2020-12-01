@@ -45,7 +45,7 @@ class Tests(unittest.TestCase):
         entry = {
             "name": f"test",
             "amount": random.randint(1, 100),
-            "numbers": [random.randint(1, 49) for _ in range(6)]
+            "numbers": [random.randint(1, 49) for _ in range(6)],
         }
         self.test_class = Create_sheet(1, entry)
 
