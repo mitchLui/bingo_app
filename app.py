@@ -137,13 +137,17 @@ class App:
         if success:
             delete_item("Create New Ticket")
             with window(
-                "Confirm new ticket", on_close=self.delete_new_ticket_confirmation, autosize=True
+                "Confirm new ticket",
+                on_close=self.delete_new_ticket_confirmation,
+                autosize=True,
             ):
                 add_text("Ticket created with the following information: ")
                 add_text(f"Name: {name}")
                 add_text(f"Bet Amount: {bet_amount}")
                 add_text(f"Numbers: {', '.join([str(x) for x in numbers])}")
-                add_button("View Ticket", callback=self.open_ticket, callback_data=ticket_id)
+                add_button(
+                    "View Ticket", callback=self.open_ticket, callback_data=ticket_id
+                )
                 add_button("Close Window", callback=self.delete_new_ticket_confirmation)
 
     def delete_new_ticket_confirmation(self, sender, data):

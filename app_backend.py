@@ -12,7 +12,7 @@ class App_backend:
     def __init__(self, directory: str, db_name="bingo.db") -> None:
         logger.info(directory)
         self.db = Database(directory, db_name)
-        #TODO Change to 0
+        # TODO Change to 0
         self.game_id = 1
 
     def create_game(self, combinations: list) -> None:
@@ -31,7 +31,6 @@ class App_backend:
                 self.game_id, path, name, amount, combinations
             )
         return ticket_id
-
 
     def open_game(self, game_id: int) -> tuple:
         tickets = []
