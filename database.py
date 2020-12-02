@@ -44,11 +44,6 @@ class Database:
         db_exists = os.path.exists(self.db_path)
         if not db_exists:
             self.init_db()
-        #!DEBUG
-        else:
-            conn, c = self.connect_db()
-            logger.debug(self.db_path)
-        #!DEBUG
 
     def get_datetime(self) -> str:
         return dt.datetime.now().strftime("%Y-%m-%d %H-%M-%S")
