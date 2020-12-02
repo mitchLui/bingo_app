@@ -172,7 +172,7 @@ class App:
         pass
 
     def open_ticket_window(self, sender, data):
-        pass
+        open_file_dialog()
 
     def show(self):
         with window("Bingo"):
