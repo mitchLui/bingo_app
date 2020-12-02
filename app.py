@@ -62,6 +62,7 @@ class App:
 
     def open_game(self, sender, data):
         # TODO Implement
+        self.check_init()
         pass
 
     def open_game_window(self, sender, data):
@@ -81,6 +82,9 @@ class App:
                     valid = False
                     error = f"Number is not between 1 and 48. (Number: {index+1})"
                     break
+            if len(set(numbers)) != 6:
+                valid = False
+                error = f"Duplicate numbers. Check input."
         except Exception:
             valid = False
             error = f"Did not enter a number (Number: {index+1})"
@@ -106,7 +110,9 @@ class App:
 
     def create_ticket(self, sender, data):
         # TODO Implement
+        self.check_init()
         success = False
+        ticket_id = 0
         name = get_value("ticket_name")
         valid_name, name = self.check_text(name)
         bet_amount = get_value("bet_amount")
@@ -120,7 +126,7 @@ class App:
             if game_id == 0:
                 self.error_window("Please create or choose a game.")
             else:
-                self.app_backend.create_ticket(game_id, entry)
+                ticket_id = self.app_backend.create_ticket(entry)
                 success = True
         else:
             if not valid_name:
@@ -131,12 +137,13 @@ class App:
         if success:
             delete_item("Create New Ticket")
             with window(
-                "Confirm new ticket", on_close=self.delete_new_ticket_confirmation
+                "Confirm new ticket", on_close=self.delete_new_ticket_confirmation, autosize=True
             ):
                 add_text("Ticket created with the following information: ")
                 add_text(f"Name: {name}")
                 add_text(f"Bet Amount: {bet_amount}")
                 add_text(f"Numbers: {', '.join([str(x) for x in numbers])}")
+                add_button("View Ticket", callback=self.open_ticket, callback_data=ticket_id)
                 add_button("Close Window", callback=self.delete_new_ticket_confirmation)
 
     def delete_new_ticket_confirmation(self, sender, data):
@@ -169,10 +176,16 @@ class App:
             add_button("Create Ticket", callback=self.create_ticket)
 
     def open_ticket(self, sender, data):
-        pass
+        if isinstance(data, list):
+            logger.debug(data)
+            path = f"{data[0]}/{data[1]}"
+            logger.debug(path)
+        else:
+            path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
+        self.app_backend.open_ticket(path)
 
     def open_ticket_window(self, sender, data):
-        open_file_dialog()
+        open_file_dialog(callback=self.open_ticket)
 
     def show(self):
         with window("Bingo"):

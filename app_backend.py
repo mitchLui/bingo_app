@@ -12,7 +12,8 @@ class App_backend:
     def __init__(self, directory: str, db_name="bingo.db") -> None:
         logger.info(directory)
         self.db = Database(directory, db_name)
-        self.game_id = 0
+        #TODO Change to 0
+        self.game_id = 1
 
     def create_game(self, combinations: list) -> None:
         self.game_id = self.db.create_bingo_game(combinations)
@@ -30,6 +31,7 @@ class App_backend:
                 self.game_id, path, name, amount, combinations
             )
         return ticket_id
+
 
     def open_game(self, game_id: int) -> tuple:
         tickets = []
@@ -57,7 +59,7 @@ class App_backend:
             )
         return num_of_tickets, tickets
 
-    def open_ticket(self, filepath: int):
+    def open_ticket(self, filepath: str):
         webbrowser.open(f"file://{filepath}")
 
 
