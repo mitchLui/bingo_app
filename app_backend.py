@@ -5,20 +5,20 @@ import unittest
 import random
 import shutil
 import os
+import webbrowser
 
 
 class App_backend:
     def __init__(self, directory: str, db_name="bingo.db") -> None:
         logger.info(directory)
         self.db = Database(directory, db_name)
-        self.game_id = 1
+        self.game_id = 0
 
-    def create_game(self, combinations: list) -> int:
-        game_id = self.db.create_bingo_game(combinations)
-        return game_id
+    def create_game(self, combinations: list) -> None:
+        self.game_id = self.db.create_bingo_game(combinations)
 
-    def create_ticket(self, game_id: int, entries: list) -> list:
-        cs = Create_sheet(game_id, entries)
+    def create_ticket(self, entry: dict) -> int:
+        cs = Create_sheet(self.game_id, entry)
         ticket_data = cs.create_tickets()
         ticket_id = 0
         if ticket_data:
@@ -27,7 +27,7 @@ class App_backend:
             amount = ticket_data["amount"]
             path = ticket_data["path"]
             ticket_id = self.db.create_bingo_sheet(
-                game_id, path, name, amount, combinations
+                self.game_id, path, name, amount, combinations
             )
         return ticket_id
 
@@ -35,7 +35,6 @@ class App_backend:
         tickets = []
         num_of_tickets, ticket_data = self.db.open_tickets_from_game(game_id)
         for ticket_datum in ticket_data:
-            logger.debug(ticket_datum)
             (
                 ticket_id,
                 game_id,
@@ -58,9 +57,8 @@ class App_backend:
             )
         return num_of_tickets, tickets
 
-    def open_ticket(self, ticket_id: int):
-        ticket_info = self.db.open_specific_bingo_sheet(ticket_id)
-        return ticket_info
+    def open_ticket(self, filepath: int):
+        webbrowser.open(f"file://{filepath}")
 
 
 class Tests(unittest.TestCase):
@@ -71,29 +69,26 @@ class Tests(unittest.TestCase):
             os.remove(db_name)
         except Exception:
             pass
-        self.test_class = App_backend(os.getcwd, db_name)
+        self.test_class = App_backend(os.getcwd(), db_name)
 
     def generate_dummy_data(self):
-        test_data = [
-            {
-                "name": f"test{x}",
-                "amount": random.randint(0, 1000),
-                "combination": [random.randint(1, 49) for _ in range(6)],
-            }
-            for x in range(20)
-        ]
+        test_data = {
+            "name": f"test",
+            "amount": random.randint(0, 1000),
+            "numbers": [random.randint(1, 49) for _ in range(6)],
+        }
         return test_data
 
     def test_create_ticket(self):
         combinations = list(range(35))
         game_id = self.test_class.create_game(combinations)
         test_data = self.generate_dummy_data()
-        self.test_class.create_ticket(game_id, test_data)
+        self.test_class.create_ticket(test_data)
         num_of_tickets, tickets = self.test_class.open_game(1)
         logger.info(num_of_tickets)
         logger.info(tickets)
 
-        ticket_info = self.test_class.open_ticket(2)
+        self.test_class.open_ticket(f"{os.getcwd()}/tickets/game_1/ticket_1.pdf")
 
 
 if __name__ == "__main__":
