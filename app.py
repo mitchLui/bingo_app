@@ -177,9 +177,7 @@ class App:
 
     def open_ticket(self, sender, data):
         if isinstance(data, list):
-            logger.debug(data)
             path = f"{data[0]}/{data[1]}"
-            logger.debug(path)
         else:
             path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
         self.app_backend.open_ticket(path)
