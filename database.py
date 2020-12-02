@@ -12,6 +12,7 @@ class Database:
     def __init__(self, cwd: str, db_name="bingo.db") -> None:
         self.db_name = db_name
         self.db_path = f"{cwd}/{db_name}"
+        logger.debug(self.db_path)
         self.db_structure = [
             {
                 "Games": [
