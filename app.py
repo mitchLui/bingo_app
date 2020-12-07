@@ -20,11 +20,17 @@ class App:
             self.init = True
 
     def verify_game(self, sender, data):
-        # TODO CHECK
-        delete_item("Game")
+        try:
+            delete_item("Error")
+        except:
+            pass
+        if not self.init:
+            delete_item("Load Game")
+            self.load_game()
+            self.error_window("Please create or choose a game.")
 
-    def close_window(self, window: str):
-        delete_item(window)
+    def close_window(self, sender, data):
+        delete_item(sender)
 
     def generate_winning_combination(self) -> list:
         # TODO ADD ODDS, MUST CONFIRM W/ CLIENT
@@ -40,34 +46,56 @@ class App:
         return win_nums
 
     def create_game(self, sender, data):
-        # TODO Implement
-        pass
+        self.app_backend.create_game(data)
+        logger.info(f"Created Game ID: {self.app_backend.game_id}")
+        delete_item("Create New Game")
 
     def create_game_window(self, sender, data):
         try:
-            self.close_window("Create New Game")
-            self.close_window("Load Game")
+            self.close_window("Create New Game", None)
+            self.close_window("Load Game", None)
             self.check_init()
         except Exception:
             pass
+        # TODO REMOVE
         numbers = self.generate_winning_combination()
-        with window("Create New Game", autosize=True):
+        with window("Create New Game", on_close=self.close_window, autosize=True):
             add_text("Winning numbers:")
             for index in range(1, len(numbers) + 1):
                 if index % 5 == 0:
                     add_text(
                         f"{numbers[index-5]} {numbers[index-4]} {numbers[index-3]} {numbers[index-2]} {numbers[index-1]}"
                     )
+            # TODO END REMOVE
             add_button("Create Game", callback=self.create_game)
 
     def open_game(self, sender, data):
-        # TODO Implement
-        self.check_init()
-        pass
+        selected_cell = get_table_selections("Games")
+        logger.debug(selected_cell)
+        self.app_backend.game_id = selected_cell[0][0] + 1
+        logger.debug(self.app_backend.game_id)
+        delete_item("Open Game")
+
+    def create_games_table(self):
+        games = self.app_backend.get_all_games()
+        table_name = "Games"
+        add_table(table_name, ["Game ID", "Created On"], callback=self.open_game)
+        for game in games:
+            add_row(table_name, [f"{game['game_id']}", f"{game['created_datetime']}"])
 
     def open_game_window(self, sender, data):
-        # TODO Implement
-        pass
+        try:
+            self.close_window("Open Game", None)
+            self.close_window("Load Game", None)
+            self.check_init()
+        except Exception:
+            pass
+        with window("Open Game", on_close=self.close_window, width=1000, height=400):
+            self.create_games_table()
+            add_button("Cancel", callback=self.close_open_game)
+
+    def close_open_game(self, sender, data):
+        delete_item("Open Game")
 
     def check_numbers(self, numbers: list) -> tuple:
         valid = False
@@ -138,7 +166,7 @@ class App:
             delete_item("Create New Ticket")
             with window(
                 "Confirm new ticket",
-                on_close=self.delete_new_ticket_confirmation,
+                on_close=self.close_window,
                 autosize=True,
             ):
                 add_text("Ticket created with the following information: ")
@@ -148,36 +176,35 @@ class App:
                 add_button(
                     "View Ticket", callback=self.open_ticket, callback_data=ticket_id
                 )
-                add_button("Close Window", callback=self.delete_new_ticket_confirmation)
-
-    def delete_new_ticket_confirmation(self, sender, data):
-        delete_item("Confirm new ticket")
+                add_button("Close Window", callback=self.close_window)
 
     def error_window(self, error: str):
-        with window("Error", on_close=self.delete_error):
+        with window("Error", on_close=self.close_window):
             add_text(error)
-            add_button("OK", callback=self.delete_error)
+            add_button("OK", callback=self.close_error)
 
-    def delete_error(self, sender, data):
+    def close_error(self, sender, data):
         delete_item("Error")
 
     def create_ticket_window(self, sender, data):
         try:
-            self.close_window("Create New Ticket")
-            self.close_window("Load Game")
-            self.check_init()
+            self.close_window("Create New Ticket", None)
+            self.close_window("Load Game", None)
         except Exception:
             pass
-        with window("Create New Ticket", autosize=True):
-            add_input_text("Name", source="ticket_name")
-            add_input_text("Amount", source="bet_amount")
-            add_input_text("Number 1", source="ticket_num_1")
-            add_input_text("Number 2", source="ticket_num_2")
-            add_input_text("Number 3", source="ticket_num_3")
-            add_input_text("Number 4", source="ticket_num_4")
-            add_input_text("Number 5", source="ticket_num_5")
-            add_input_text("Number 6", source="ticket_num_6")
-            add_button("Create Ticket", callback=self.create_ticket)
+        if not self.init:
+            self.verify_game(None, None)
+        else:
+            with window("Create New Ticket", autosize=True, on_close=self.close_window):
+                add_input_text("Name", source="ticket_name")
+                add_input_text("Amount", source="bet_amount")
+                add_input_text("Number 1", source="ticket_num_1")
+                add_input_text("Number 2", source="ticket_num_2")
+                add_input_text("Number 3", source="ticket_num_3")
+                add_input_text("Number 4", source="ticket_num_4")
+                add_input_text("Number 5", source="ticket_num_5")
+                add_input_text("Number 6", source="ticket_num_6")
+                add_button("Create Ticket", callback=self.create_ticket)
 
     def open_ticket(self, sender, data):
         if isinstance(data, list):
@@ -189,9 +216,23 @@ class App:
     def open_ticket_window(self, sender, data):
         open_file_dialog(callback=self.open_ticket)
 
+    def load_game(self):
+        with window("Load Game", autosize=True, on_close=self.verify_game):
+
+            add_button("Create new game", callback=self.create_game_window)
+            add_button("Load game", callback=self.open_game_window)
+
+    def remove_db(self, sender, data):
+        try:
+            os.remove(f"{os.getcwd()}/bingo.db")
+            logger.info("removed db.")
+            self.init = False
+        except Exception:
+            logger.error("DB not found.")
+
     def show(self):
         with window("Bingo"):
-            set_main_window_size(1024, 760)
+            set_main_window_size(1920, 1080)
             set_main_window_resizable(True)
             set_global_font_scale(1.25)
             with menu_bar("Main Menu Bar"):
@@ -207,10 +248,9 @@ class App:
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
 
-        with window("Load Game", autosize=True, on_close=self.verify_game):
+            add_button("Remove db", callback=self.remove_db)
 
-            add_button("Create new game", callback=self.create_game_window)
-            add_button("Load game", callback=self.open_game_window)
+        self.load_game()
 
         start_dearpygui(primary_window="Bingo")
 
