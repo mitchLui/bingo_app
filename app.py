@@ -46,6 +46,7 @@ class App:
         return win_nums
 
     def create_game(self, sender, data):
+        #TODO TEST
         self.app_backend.create_game()
         logger.info(f"Created Game ID: {self.app_backend.game_id}")
         delete_item("Create New Game")
