@@ -17,7 +17,7 @@ class Database:
             {
                 "Games": [
                     {"name": "GameID", "type": "INTEGER", "primary_key": True},
-                    {"name": "combination", "type": "TEXT"},
+                    {"name": "combination", "type": "TEXT", "notnull": True},
                     {"name": "created_datetime", "type": "TEXT"},
                 ]
             },
@@ -64,7 +64,10 @@ class Database:
                     if pk:
                         field_statement += f"{field_name} {field_type} PRIMARY KEY ASC"
                     else:
-                        field_statement += f"{field_name} {field_type} NOT NULL"
+                        if field.get("notnull", False):
+                            field_statement += f"{field_name} {field_type}"
+                        else:
+                            field_statement += f"{field_name} {field_type} NOT NULL"
                     if index + 1 != len(fields):
                         field_statement += ", "
                     fk = field.get("foregin_key", False)
@@ -78,6 +81,7 @@ class Database:
                     field_statement += f", FOREIGN KEY ({','.join(keys)}) REFERENCES {','.join(references)}"
                 field_statement += ");"
                 statement += field_statement
+            logger.debug(statement)
             c.execute(statement)
         conn.commit()
         conn.close()
@@ -103,7 +107,7 @@ class Database:
             conn.close()
             return result
 
-    def create_bingo_game(self, combinations: list) -> int:
+    def create_bingo_game(self, combinations="test") -> int:
         game_id = 0
         combinations = [str(x) for x in combinations]
         combinations = ",".join(combinations)
@@ -223,6 +227,9 @@ class Tests(unittest.TestCase):
         except Exception:
             pass
         self.test_class = Database(os.getcwd(), "test.db")
+
+    def tearDown(self) -> None:
+        self.setUp()
 
     def test_games_table(self):
         # * Creating Games
