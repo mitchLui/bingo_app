@@ -34,6 +34,7 @@ class App:
 
     def generate_winning_combination(self) -> list:
         # TODO ADD ODDS, MUST CONFIRM W/ CLIENT
+        # TODO use Game.py for generating combinations
         numbers = list(range(1, 49))
         required_numbers = 35
         win_nums = []
@@ -46,7 +47,6 @@ class App:
         return win_nums
 
     def create_game(self, sender, data):
-        #TODO TEST
         self.app_backend.create_game()
         logger.info(f"Created Game ID: {self.app_backend.game_id}")
         delete_item("Create New Game")
@@ -138,7 +138,6 @@ class App:
             return valid, number
 
     def create_ticket(self, sender, data):
-        # TODO Implement
         self.check_init()
         success = False
         ticket_id = 0
