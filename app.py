@@ -59,14 +59,16 @@ class App:
         except Exception:
             pass
         # TODO REMOVE
-        numbers = self.generate_winning_combination()
+        # numbers = self.generate_winning_combination()
         with window("Create New Game", on_close=self.close_window, autosize=True):
+            """
             add_text("Winning numbers:")
             for index in range(1, len(numbers) + 1):
                 if index % 5 == 0:
                     add_text(
                         f"{numbers[index-5]} {numbers[index-4]} {numbers[index-3]} {numbers[index-2]} {numbers[index-1]}"
                     )
+            """
             # TODO END REMOVE
             add_button("Create Game", callback=self.create_game)
 
