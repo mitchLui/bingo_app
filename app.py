@@ -79,7 +79,7 @@ class App:
         logger.debug(self.app_backend.game_id)
         delete_item("Open Game")
 
-    def create_games_table(self):
+    def open_games_table(self):
         games = self.app_backend.get_all_games()
         table_name = "Games"
         add_table(table_name, ["Game ID", "Created On"], callback=self.open_game)
@@ -94,7 +94,7 @@ class App:
         except Exception:
             pass
         with window("Open Game", on_close=self.close_window, width=1000, height=400):
-            self.create_games_table()
+            self.open_games_table()
             add_button("Cancel", callback=self.close_open_game)
 
     def close_open_game(self, sender, data):
