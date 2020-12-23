@@ -219,6 +219,20 @@ class Database:
             conn.close()
             return results
 
+    def update_game_combinations(self, game_id: int, combinations: list) -> None:
+        statement = "UPDATE Games SET combination = ? WHERE GameID = ?;"
+        conn, c = self.connect_db()
+        fields = (','.join(combinations), game_id,)
+        try:
+            c.execute(statement, fields)
+            conn.commit()
+        except Exception:
+            conn.rollback()
+            logger.error(traceback.format_exc())
+        finally:
+            conn.close()
+
+
 
 class Tests(unittest.TestCase):
     def setUp(self):
