@@ -222,7 +222,10 @@ class Database:
     def update_game_combinations(self, game_id: int, combinations: list) -> None:
         statement = "UPDATE Games SET combination = ? WHERE GameID = ?;"
         conn, c = self.connect_db()
-        fields = (','.join(combinations), game_id,)
+        fields = (
+            ",".join(combinations),
+            game_id,
+        )
         try:
             c.execute(statement, fields)
             conn.commit()
@@ -231,7 +234,6 @@ class Database:
             logger.error(traceback.format_exc())
         finally:
             conn.close()
-
 
 
 class Tests(unittest.TestCase):

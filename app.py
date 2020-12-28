@@ -231,7 +231,9 @@ class App:
                     add_menu_item("Show style menu", callback=show_style_editor)
 
             add_button("Remove db", callback=self.remove_db)
-            add_button("Test Add Combination", callback=self.test_add_winning_combination)
+            add_button(
+                "Test Add Combination", callback=self.test_add_winning_combination
+            )
 
         self.load_game()
 

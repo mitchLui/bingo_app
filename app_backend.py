@@ -14,7 +14,7 @@ class App_backend:
     def __init__(self, directory: str, db_name="bingo.db") -> None:
         logger.info(directory)
         self.db = Database(directory, db_name)
-        self.game = Game(db = self.db)
+        self.game = Game(db=self.db)
         self.game_id = 0
 
     def create_game(self, combinations="test") -> None:
