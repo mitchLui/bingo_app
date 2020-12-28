@@ -1,3 +1,4 @@
+from game import Game
 from dearpygui.core import *
 from dearpygui.simple import *
 from loguru import logger
@@ -32,20 +33,6 @@ class App:
     def close_window(self, sender, data):
         delete_item(sender)
 
-    def generate_winning_combination(self) -> list:
-        # TODO ADD ODDS, MUST CONFIRM W/ CLIENT
-        # TODO use Game.py for generating combinations
-        numbers = list(range(1, 49))
-        required_numbers = 35
-        win_nums = []
-        i = 1
-        while i != required_numbers:
-            index = random.randint(0, len(numbers) - 1)
-            number = numbers.pop(index)
-            win_nums.append(number)
-            i += 1
-        return win_nums
-
     def create_game(self, sender, data):
         self.app_backend.create_game()
         logger.info(f"Created Game ID: {self.app_backend.game_id}")
@@ -58,19 +45,8 @@ class App:
             self.check_init()
         except Exception:
             pass
-        # TODO REMOVE
-        # numbers = self.generate_winning_combination()
         with window("Create New Game", on_close=self.close_window, autosize=True):
-            """
-            add_text("Winning numbers:")
-            for index in range(1, len(numbers) + 1):
-                if index % 5 == 0:
-                    add_text(
-                        f"{numbers[index-5]} {numbers[index-4]} {numbers[index-3]} {numbers[index-2]} {numbers[index-1]}"
-                    )
-            """
-            # TODO END REMOVE
-            add_button("Create Game", callback=self.create_game)
+            add_button("Confirm", callback=self.create_game)
 
     def open_game(self, sender, data):
         selected_cell = get_table_selections("Games")
@@ -232,6 +208,10 @@ class App:
         except Exception:
             logger.error("DB not found.")
 
+    def test_add_winning_combination(self, sender, data):
+        self.app_backend.game_id = 1
+        self.app_backend.generate_winning_combination(game_id=self.app_backend.game_id)
+
     def show(self):
         with window("Bingo"):
             set_main_window_size(1920, 1080)
@@ -251,6 +231,7 @@ class App:
                     add_menu_item("Show style menu", callback=show_style_editor)
 
             add_button("Remove db", callback=self.remove_db)
+            add_button("Test Add Combination", callback=self.test_add_winning_combination)
 
         self.load_game()
 
