@@ -107,14 +107,11 @@ class Database:
             conn.close()
             return result
 
-    def create_bingo_game(self, combinations="test") -> int:
+    def create_bingo_game(self) -> int:
         game_id = 0
-        combinations = [str(x) for x in combinations]
-        combinations = ",".join(combinations)
         created_datetime = self.get_datetime()
-        statement = f"INSERT INTO Games (combination, created_datetime) VALUES (?, ?);"
+        statement = f"INSERT INTO Games (created_datetime) VALUES (?);"
         values = (
-            combinations,
             created_datetime,
         )
         conn, c = self.connect_db()
@@ -235,6 +232,19 @@ class Database:
         finally:
             conn.close()
 
+    def get_combination(self, game_id: int) -> list:
+        results = []
+        statement = "SELECT combination FROM Games WHERE GameID=?;"
+        fields = (game_id,)
+        conn, c = self.connect_db()
+        try:
+            c.execute(statement, fields)
+            results = c.fetchall()
+        except Exception:
+            logger.error(traceback.format_exc())
+        finally:
+            conn.close()
+            return results
 
 class Tests(unittest.TestCase):
     def setUp(self):

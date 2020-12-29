@@ -1,4 +1,5 @@
 from datetime import datetime
+from dearpygui.core import get_style_frame_border_size
 from loguru import logger
 from bingo_sheet import Create_sheet
 from database import Database
@@ -17,8 +18,8 @@ class App_backend:
         self.game = Game(db=self.db)
         self.game_id = 0
 
-    def create_game(self, combinations="test") -> None:
-        self.game_id = self.db.create_bingo_game(combinations)
+    def create_game(self) -> None:
+        self.game_id = self.db.create_bingo_game()
 
     def create_ticket(self, entry: dict) -> int:
         cs = Create_sheet(self.game_id, entry)
@@ -79,6 +80,11 @@ class App_backend:
         combination = self.game.generate_winning_combination(game_id)
         self.game.add_combination_to_database(game_id, combination)
 
+    def get_combination_from_game(self):
+        combination = self.db.get_combination(self.game_id)
+        if not combination:
+            return None
+        return combination[0]
 
 class Tests(unittest.TestCase):
     def setUp(self) -> None:
