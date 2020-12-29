@@ -32,11 +32,16 @@ class App:
 
     def close_window(self, sender, data):
         delete_item(sender)
+    
+    def update_game_id_text(self):
+        set_value("game_id_display", f"Game ID: {self.app_backend.game_id}")
 
     def create_game(self, sender, data):
         self.app_backend.create_game()
         logger.info(f"Created Game ID: {self.app_backend.game_id}")
         delete_item("Create New Game")
+        self.update_game_id_text()
+        self.get_combinations()
 
     def create_game_window(self, sender, data):
         try:
@@ -48,12 +53,18 @@ class App:
         with window("Create New Game", on_close=self.close_window, autosize=True):
             add_button("Confirm", callback=self.create_game)
 
+    def get_combinations(self):
+        combination = self.app_backend.get_combination_from_game()
+        logger.info(combination)
+
     def open_game(self, sender, data):
         selected_cell = get_table_selections("Games")
         logger.debug(selected_cell)
         self.app_backend.game_id = selected_cell[0][0] + 1
         logger.debug(self.app_backend.game_id)
         delete_item("Open Game")
+        self.update_game_id_text()
+        self.get_combinations()
 
     def open_games_table(self):
         games = self.app_backend.get_all_games()
@@ -154,7 +165,10 @@ class App:
                 add_button(
                     "View Ticket", callback=self.open_ticket, callback_data=ticket_id
                 )
-                add_button("Close Window", callback=self.close_window)
+                add_button("Close Window", callback=self.close_create_ticket_window)
+
+    def close_create_ticket_window(self, sender, data):
+        delete_item("Confirm new ticket")
 
     def error_window(self, error: str):
         with window("Error", on_close=self.close_window):
@@ -199,7 +213,9 @@ class App:
 
             add_button("Create new game", callback=self.create_game_window)
             add_button("Load game", callback=self.open_game_window)
-
+    
+    
+    #! DEBUG
     def remove_db(self, sender, data):
         try:
             os.remove(f"{os.getcwd()}/bingo.db")
@@ -211,6 +227,8 @@ class App:
     def test_add_winning_combination(self, sender, data):
         self.app_backend.game_id = 1
         self.app_backend.generate_winning_combination(game_id=self.app_backend.game_id)
+    #! DEBUG
+
 
     def show(self):
         with window("Bingo"):
@@ -229,11 +247,13 @@ class App:
 
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
-
+            #! DEBUG
             add_button("Remove db", callback=self.remove_db)
             add_button(
                 "Test Add Combination", callback=self.test_add_winning_combination
             )
+            #! DEBUG
+            add_text(f"Game ID: N/A", source="game_id_display", parent="Bingo")
 
         self.load_game()
 
