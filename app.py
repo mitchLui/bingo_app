@@ -1,3 +1,4 @@
+from shutil import ExecError
 from game import Game
 from dearpygui.core import *
 from dearpygui.simple import *
@@ -33,20 +34,21 @@ class App:
     def close_window(self, sender, data):
         delete_item(sender)
 
-    def update_game_id_text(self):
-        set_value("game_id_display", f"Game ID: {self.app_backend.game_id}")
+    def update_game_id_text(self, game_id: int):
+        set_value("game_id_display", f"Game ID: {game_id}")
 
     def create_game(self, sender, data):
         self.app_backend.create_game()
         logger.info(f"Created Game ID: {self.app_backend.game_id}")
         delete_item("Create New Game")
-        self.update_game_id_text()
+        self.update_game_id_text(self.app_backend.game_id)
         self.get_combinations()
 
     def create_game_window(self, sender, data):
         try:
             self.close_window("Create New Game", None)
             self.close_window("Load Game", None)
+            self.reset_combination()
             self.check_init()
         except Exception:
             pass
@@ -56,17 +58,17 @@ class App:
     def get_combinations(self):
         combination = self.app_backend.get_combination_from_game()
         if not combination:
-            # TODO 
             logger.info("No combo")
-            add_button("Draw", callback=self.create_combination, parent="Bingo", source="draw")
-            self.get_combinations()
+            add_button("Draw", callback=self.create_combination, parent="Bingo")
         else:
-            # TODO
-            logger.info(combination)
+            try:
+                delete_item("Draw")
+                delete_item("Winning numbers:")
+                self.reset_combination(False)
+            except Exception:
+                pass
             combination = combination.split(',')
-            #combination = [combination[i:i + 5] for i in range(0, len(combination), 5)]
-            logger.info(combination)
-            logger.info(len(combination))
+            logger.debug(combination)
             add_text("Winning numbers:", parent="Bingo")
             i = 1
             for index in range(1, len(combination) + 1):
@@ -77,8 +79,24 @@ class App:
                         source=f"draw_{i}"
                     )
                     i += 1
+
+    def reset_combination(self, reset_text = True):
+        try:
+            combination = self.app_backend.get_combination_from_game()
+            combination = combination.split(',')
+            for index in range(1, len(combination) + 1):
+                if index % 5 == 0:
+                    delete_item(
+                        f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}"
+                    )
+            if reset_text:
+                self.update_game_id_text("N/A")
+        except:
+            pass
+
     def create_combination(self, sender, data):
-        pass
+        self.app_backend.generate_winning_combination(self.app_backend.game_id)
+        self.get_combinations()
 
     def open_game(self, sender, data):
         selected_cell = get_table_selections("Games")
@@ -86,7 +104,7 @@ class App:
         self.app_backend.game_id = selected_cell[0][0] + 1
         logger.debug(self.app_backend.game_id)
         delete_item("Open Game")
-        self.update_game_id_text()
+        self.update_game_id_text(self.app_backend.game_id)
         self.get_combinations()
 
     def open_games_table(self):
@@ -101,6 +119,7 @@ class App:
             self.close_window("Open Game", None)
             self.close_window("Load Game", None)
             self.check_init()
+            self.reset_combination()
         except Exception:
             pass
         with window("Open Game", on_close=self.close_window, width=1000, height=400):
@@ -246,10 +265,6 @@ class App:
         except Exception:
             logger.error("DB not found.")
 
-    def test_add_winning_combination(self, sender, data):
-        self.app_backend.game_id = 1
-        self.app_backend.generate_winning_combination(game_id=self.app_backend.game_id)
-
     #! DEBUG
 
     def show(self):
@@ -272,9 +287,6 @@ class App:
             #! DEBUG
             add_text("Debugging")
             add_button("Remove db", callback=self.remove_db)
-            add_button(
-                "Test Add Combination", callback=self.test_add_winning_combination
-            )
             add_text("Debugging")
             #! DEBUG
             add_text(f"Game ID: N/A", source="game_id_display", parent="Bingo")

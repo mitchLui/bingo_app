@@ -27,14 +27,12 @@ class Game:
 
     def generate_winning_combination(self, game_id: int):
         odds = self.generate_odds(game_id)
-        logger.debug(odds)
         picked_values = []
         i = 0
         while i != 35:
             picked_value = random.choices(
                 population=list(odds.keys()), weights=list(odds.values())
             )[0]
-            print(f"Chosen Value: {picked_value}")
             picked_values.append(picked_value)
             del odds[picked_value]
             i += 1
