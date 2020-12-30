@@ -111,9 +111,7 @@ class Database:
         game_id = 0
         created_datetime = self.get_datetime()
         statement = f"INSERT INTO Games (created_datetime) VALUES (?);"
-        values = (
-            created_datetime,
-        )
+        values = (created_datetime,)
         conn, c = self.connect_db()
         try:
             c.execute(statement, values)
@@ -245,6 +243,7 @@ class Database:
         finally:
             conn.close()
             return results
+
 
 class Tests(unittest.TestCase):
     def setUp(self):
