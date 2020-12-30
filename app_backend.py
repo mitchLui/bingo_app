@@ -82,9 +82,8 @@ class App_backend:
 
     def get_combination_from_game(self):
         combination = self.db.get_combination(self.game_id)
-        if not combination:
-            return None
-        return combination[0]
+        return combination[0][0]
+
 
 class Tests(unittest.TestCase):
     def setUp(self) -> None:
