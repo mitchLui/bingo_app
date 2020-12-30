@@ -25,7 +25,7 @@ class Game:
         odds = {x: y / sum(list(count.values())) for x, y in count.items()}
         return odds
 
-    def generate_combination_count(self, game_id: int):
+    def generate_winning_combination(self, game_id: int):
         odds = self.generate_odds(game_id)
         logger.debug(odds)
         picked_values = []
@@ -49,7 +49,7 @@ class Tests(unittest.TestCase):
         self.test_class = Game(os.getcwd(), "test.db", None)
 
     def test_generate_odds(self):
-        self.test_class.generate_combination_count(1)
+        self.test_class.generate_winning_combination(1)
 
 
 if __name__ == "__main__":
