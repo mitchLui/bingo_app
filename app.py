@@ -32,7 +32,7 @@ class App:
 
     def close_window(self, sender, data):
         delete_item(sender)
-    
+
     def update_game_id_text(self):
         set_value("game_id_display", f"Game ID: {self.app_backend.game_id}")
 
@@ -55,7 +55,30 @@ class App:
 
     def get_combinations(self):
         combination = self.app_backend.get_combination_from_game()
-        logger.info(combination)
+        if not combination:
+            # TODO 
+            logger.info("No combo")
+            add_button("Draw", callback=self.create_combination, parent="Bingo", source="draw")
+            self.get_combinations()
+        else:
+            # TODO
+            logger.info(combination)
+            combination = combination.split(',')
+            #combination = [combination[i:i + 5] for i in range(0, len(combination), 5)]
+            logger.info(combination)
+            logger.info(len(combination))
+            add_text("Winning numbers:", parent="Bingo")
+            i = 1
+            for index in range(1, len(combination) + 1):
+                if index % 5 == 0:
+                    add_text(
+                        f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}",
+                        parent="Bingo",
+                        source=f"draw_{i}"
+                    )
+                    i += 1
+    def create_combination(self, sender, data):
+        pass
 
     def open_game(self, sender, data):
         selected_cell = get_table_selections("Games")
@@ -213,8 +236,7 @@ class App:
 
             add_button("Create new game", callback=self.create_game_window)
             add_button("Load game", callback=self.open_game_window)
-    
-    
+
     #! DEBUG
     def remove_db(self, sender, data):
         try:
@@ -227,8 +249,8 @@ class App:
     def test_add_winning_combination(self, sender, data):
         self.app_backend.game_id = 1
         self.app_backend.generate_winning_combination(game_id=self.app_backend.game_id)
-    #! DEBUG
 
+    #! DEBUG
 
     def show(self):
         with window("Bingo"):
@@ -248,10 +270,12 @@ class App:
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
             #! DEBUG
+            add_text("Debugging")
             add_button("Remove db", callback=self.remove_db)
             add_button(
                 "Test Add Combination", callback=self.test_add_winning_combination
             )
+            add_text("Debugging")
             #! DEBUG
             add_text(f"Game ID: N/A", source="game_id_display", parent="Bingo")
 
