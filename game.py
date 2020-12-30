@@ -6,7 +6,7 @@ import os
 
 
 class Game:
-    def __init__(self, cwd="", db_name="bingo.db", db="") -> None:
+    def __init__(self, cwd="", db_name="bingo.db", db=None) -> None:
         if not db:
             self.db = Database(cwd, db_name)
         else:
@@ -29,13 +29,15 @@ class Game:
         odds = self.generate_odds(game_id)
         logger.debug(odds)
         picked_values = []
-        while odds:
+        i = 0
+        while i != 35:
             picked_value = random.choices(
                 population=list(odds.keys()), weights=list(odds.values())
             )[0]
             print(f"Chosen Value: {picked_value}")
             picked_values.append(picked_value)
             del odds[picked_value]
+            i += 1
         return picked_values
 
     def add_combination_to_database(self, game_id: int, results: list):
@@ -44,7 +46,7 @@ class Game:
 
 class Tests(unittest.TestCase):
     def setUp(self) -> None:
-        self.test_class = Game(os.getcwd(), "test.db", "")
+        self.test_class = Game(os.getcwd(), "test.db", None)
 
     def test_generate_odds(self):
         self.test_class.generate_combination_count(1)
