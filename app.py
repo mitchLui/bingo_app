@@ -1,10 +1,7 @@
-from shutil import ExecError
-from game import Game
 from dearpygui.core import *
 from dearpygui.simple import *
 from loguru import logger
 from app_backend import App_backend
-import random
 import os
 import traceback
 

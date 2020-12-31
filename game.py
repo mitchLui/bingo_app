@@ -1,4 +1,3 @@
-from loguru import logger
 from database import Database
 import random
 import unittest
