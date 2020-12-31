@@ -3,7 +3,6 @@ from dearpygui.simple import *
 from loguru import logger
 from app_backend import App_backend
 import os
-import traceback
 
 
 class App:
