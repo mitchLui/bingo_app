@@ -30,6 +30,7 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
+          icon='icon.png',
           console=True )
 app = BUNDLE(exe,
              name='Game.app',
