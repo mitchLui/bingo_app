@@ -64,7 +64,7 @@ class App:
                 self.reset_combination(False)
             except Exception:
                 pass
-            combination = combination.split(',')
+            combination = combination.split(",")
             logger.debug(combination)
             add_text("Winning numbers:", parent="Bingo")
             i = 1
@@ -73,14 +73,14 @@ class App:
                     add_text(
                         f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}",
                         parent="Bingo",
-                        source=f"draw_{i}"
+                        source=f"draw_{i}",
                     )
                     i += 1
 
-    def reset_combination(self, reset_text = True):
+    def reset_combination(self, reset_text=True):
         try:
             combination = self.app_backend.get_combination_from_game()
-            combination = combination.split(',')
+            combination = combination.split(",")
             for index in range(1, len(combination) + 1):
                 if index % 5 == 0:
                     delete_item(
