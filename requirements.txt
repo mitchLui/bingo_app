@@ -1,0 +1,6 @@
+PyPDF2
+PyInstaller
+dearpygui
+loguru
+reportlab
+webbrowser
