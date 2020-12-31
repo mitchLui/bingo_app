@@ -1,12 +1,9 @@
-from unittest.case import expectedFailure
 from loguru import logger
 from tickets import Tickets
-from copy import deepcopy
 import unittest
 import traceback
 import random
 import shutil
-import os
 
 
 class Create_sheet:
@@ -14,8 +11,6 @@ class Create_sheet:
         self.ticket_generator = Tickets()
         self.game_number = game_number
         self.entry = entry
-        self.num_range = list(range(1, 49))
-        self.numbers_needed = 6
 
     def format_entry(self) -> None:
         logger.debug(self.entry)
