@@ -24,7 +24,7 @@ class Game:
         odds = {x: y / sum(list(count.values())) for x, y in count.items()}
         return odds
 
-    def generate_winning_combination(self, game_id: int):
+    def generate_winning_combination(self, game_id: int) -> list:
         odds = self.generate_odds(game_id)
         picked_values = []
         i = 0
@@ -37,7 +37,7 @@ class Game:
             i += 1
         return picked_values
 
-    def add_combination_to_database(self, game_id: int, results: list):
+    def add_combination_to_database(self, game_id: int, results: list) -> None:
         self.db.update_game_combinations(game_id, results)
 
 

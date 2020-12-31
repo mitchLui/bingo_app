@@ -86,7 +86,7 @@ class Database:
         conn.commit()
         conn.close()
 
-    def connect_db(self) -> Cursor:
+    def connect_db(self) -> tuple:
         conn = sqlite3.connect(self.db_path)
         c = conn.cursor()
         return conn, c

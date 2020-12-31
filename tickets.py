@@ -15,7 +15,7 @@ class Tickets:
         doc = SimpleDocTemplate(name, pagesize=A4)
         return doc
 
-    def get_body_style(self):
+    def get_body_style(self) -> dict:
         sample_style_sheet = getSampleStyleSheet()
         body_style = sample_style_sheet["BodyText"]
         body_style.fontSize = 11
@@ -63,7 +63,7 @@ class Tickets:
         except Exception:
             pass
 
-    def generate_ticket(self, ticket: dict, game_number=1) -> None:
+    def generate_ticket(self, ticket: dict, game_number=1) -> str:
         original_path = os.getcwd()
         self.create_dir(game_number)
         logger.debug(f"{original_path}")

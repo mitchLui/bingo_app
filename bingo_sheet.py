@@ -16,7 +16,7 @@ class Create_sheet:
         logger.debug(self.entry)
         self.entry["numbers"] = [self.entry["numbers"]]
 
-    def generate_ticket(self) -> None:
+    def generate_ticket(self) -> str:
         path = self.ticket_generator.generate_ticket(self.entry, self.game_number)
         return path
 

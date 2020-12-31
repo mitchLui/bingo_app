@@ -17,7 +17,7 @@ class App:
             self.app_backend = App_backend(os.getcwd(), "bingo.db")
             self.init = True
 
-    def verify_game(self, sender, data):
+    def verify_game(self, sender, data) -> None:
         try:
             delete_item("Error")
         except:
@@ -27,20 +27,20 @@ class App:
             self.load_game()
             self.error_window("Please create or choose a game.")
 
-    def close_window(self, sender, data):
+    def close_window(self, sender, data) -> None:
         delete_item(sender)
 
-    def update_game_id_text(self, game_id: int):
+    def update_game_id_text(self, game_id: int) -> None:
         set_value("game_id_display", f"Game ID: {game_id}")
 
-    def create_game(self, sender, data):
+    def create_game(self, sender, data) -> None:
         self.app_backend.create_game()
         logger.info(f"Created Game ID: {self.app_backend.game_id}")
         delete_item("Create New Game")
         self.update_game_id_text(self.app_backend.game_id)
         self.get_combinations()
 
-    def create_game_window(self, sender, data):
+    def create_game_window(self, sender, data) -> None:
         try:
             self.close_window("Create New Game", None)
             self.close_window("Load Game", None)
@@ -51,7 +51,7 @@ class App:
         with window("Create New Game", on_close=self.close_window, autosize=True):
             add_button("Confirm", callback=self.create_game)
 
-    def get_combinations(self):
+    def get_combinations(self) -> None:
         combination = self.app_backend.get_combination_from_game()
         if not combination:
             logger.info("No combo")
@@ -76,7 +76,7 @@ class App:
                     )
                     i += 1
 
-    def reset_combination(self, reset_text=True):
+    def reset_combination(self, reset_text=True) -> None:
         try:
             combination = self.app_backend.get_combination_from_game()
             combination = combination.split(",")
@@ -90,11 +90,11 @@ class App:
         except:
             pass
 
-    def create_combination(self, sender, data):
+    def create_combination(self, sender, data) -> None:
         self.app_backend.generate_winning_combination(self.app_backend.game_id)
         self.get_combinations()
 
-    def open_game(self, sender, data):
+    def open_game(self, sender, data) -> None:
         selected_cell = get_table_selections("Games")
         logger.debug(selected_cell)
         self.app_backend.game_id = selected_cell[0][0] + 1
@@ -103,14 +103,14 @@ class App:
         self.update_game_id_text(self.app_backend.game_id)
         self.get_combinations()
 
-    def open_games_table(self):
+    def open_games_table(self) -> None:
         games = self.app_backend.get_all_games()
         table_name = "Games"
         add_table(table_name, ["Game ID", "Created On"], callback=self.open_game)
         for game in games:
             add_row(table_name, [f"{game['game_id']}", f"{game['created_datetime']}"])
 
-    def open_game_window(self, sender, data):
+    def open_game_window(self, sender, data) -> None:
         try:
             self.close_window("Open Game", None)
             self.close_window("Load Game", None)
@@ -122,7 +122,7 @@ class App:
             self.open_games_table()
             add_button("Cancel", callback=self.close_open_game)
 
-    def close_open_game(self, sender, data):
+    def close_open_game(self, sender, data) -> None:
         delete_item("Open Game")
 
     def check_numbers(self, numbers: list) -> tuple:
@@ -164,7 +164,7 @@ class App:
         finally:
             return valid, number
 
-    def create_ticket(self, sender, data):
+    def create_ticket(self, sender, data) -> None:
         self.check_init()
         success = False
         ticket_id = 0
@@ -205,18 +205,18 @@ class App:
                 )
                 add_button("Close Window", callback=self.close_create_ticket_window)
 
-    def close_create_ticket_window(self, sender, data):
+    def close_create_ticket_window(self, sender, data) -> None:
         delete_item("Confirm new ticket")
 
-    def error_window(self, error: str):
+    def error_window(self, error: str) -> None:
         with window("Error", on_close=self.close_window):
             add_text(error)
             add_button("OK", callback=self.close_error)
 
-    def close_error(self, sender, data):
+    def close_error(self, sender, data) -> None:
         delete_item("Error")
 
-    def create_ticket_window(self, sender, data):
+    def create_ticket_window(self, sender, data) -> None:
         try:
             self.close_window("Create New Ticket", None)
             self.close_window("Load Game", None)
@@ -236,34 +236,24 @@ class App:
                 add_input_text("Number 6", source="ticket_num_6")
                 add_button("Create Ticket", callback=self.create_ticket)
 
-    def open_ticket(self, sender, data):
+    def open_ticket(self, sender, data) -> None:
         if isinstance(data, list):
             path = f"{data[0]}/{data[1]}"
         else:
             path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
         self.app_backend.open_ticket(path)
 
-    def open_ticket_window(self, sender, data):
+    def open_ticket_window(self, sender, data) -> None:
         open_file_dialog(callback=self.open_ticket)
 
-    def load_game(self):
+    def load_game(self) -> None:
         with window("Load Game", autosize=True, on_close=self.verify_game):
 
             add_button("Create new game", callback=self.create_game_window)
             add_button("Load game", callback=self.open_game_window)
 
-    #! DEBUG
-    def remove_db(self, sender, data):
-        try:
-            os.remove(f"{os.getcwd()}/bingo.db")
-            logger.info("removed db.")
-            self.init = False
-        except Exception:
-            logger.error("DB not found.")
 
-    #! DEBUG
-
-    def show(self):
+    def show(self) -> None:
         with window("Bingo"):
             set_main_window_size(1920, 1080)
             set_main_window_resizable(True)
@@ -280,11 +270,7 @@ class App:
 
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
-            #! DEBUG
-            add_text("Debugging")
-            add_button("Remove db", callback=self.remove_db)
-            add_text("Debugging")
-            #! DEBUG
+
             add_text(f"Game ID: N/A", source="game_id_display", parent="Bingo")
 
         self.load_game()

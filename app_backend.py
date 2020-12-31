@@ -78,7 +78,7 @@ class App_backend:
         combination = self.game.generate_winning_combination(game_id)
         self.game.add_combination_to_database(game_id, combination)
 
-    def get_combination_from_game(self):
+    def get_combination_from_game(self) -> tuple:
         combination = self.db.get_combination(self.game_id)
         return combination[0][0]
 
