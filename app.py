@@ -252,7 +252,6 @@ class App:
             add_button("Create new game", callback=self.create_game_window)
             add_button("Load game", callback=self.open_game_window)
 
-
     def show(self) -> None:
         with window("Bingo"):
             set_main_window_size(1920, 1080)
