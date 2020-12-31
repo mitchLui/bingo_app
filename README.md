@@ -29,13 +29,14 @@ pyinstaller build_app.spec
 ├── game.py
 └── tickets.py
 ```
-
-`app.py` - Main application, built using DearPyGui
-`app_backend.py` - Backend for application, handles interaction and callbacks
-`bingo_sheet.py` - Handles data formatting before passing to `tickets.py`
-`database.py` - Handles database functions
-`game.py` - Actual game mechanism, probability generation etc
-`tickets.py` - Creates tickets in the form of PDFs.
+| Filename          | Description                                                 |
+| ----------------- | ----------------------------------------------------------- |
+|`app.py`           | Main application, built using [DearPyGui][1]                |
+|`app_backend.py`   | Backend for application, handles interaction and callbacks  |
+|`bingo_sheet.py`   | Handles data formatting before passing to `tickets.py`      |
+|`database.py`      | Handles database functions                                  |
+|`game.py`          | Actual game mechanism, probability generation etc           |
+|`tickets.py`       | Creates tickets in the form of PDFs                         |
 
 ---
 
