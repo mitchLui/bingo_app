@@ -3,6 +3,9 @@ from dearpygui.simple import *
 from loguru import logger
 from app_backend import App_backend
 import os
+import traceback
+from concurrent.futures import ThreadPoolExecutor
+import time
 
 
 class App:
@@ -63,27 +66,84 @@ class App:
                 self.reset_combination(False)
             except Exception:
                 pass
-            combination = combination.split(",")
+            combination = list(reversed(combination.split(",")))
+            try:
+                #!DEBUG
+                run_async_function(
+                    self.combination_handler,
+                    data=combination,
+                    return_handler=self.combination_return_handler,
+                )
+                logger.debug("End")
+            except:
+                logger.error(traceback.format_exc())
+
+    def combination_return_handler(self, sender, data) -> None:
+        logger.info(f"handler {data}")
+        add_text("Winning numbers:", parent="Bingo")
+        current = ""
+        last = ""
+        for elem in data:
+            current = elem["source"]
+            text = elem["text"]
+            if last != current:
+                add_text(text, parent="Bingo", source=current)
+            else:
+                set_value(current, text)
+            last = current
+
+    def combination_handler(self, sender, combination) -> list:
+        write_text = []
+        try:
             logger.debug(combination)
-            add_text("Winning numbers:", parent="Bingo")
             i = 1
             for index in range(1, len(combination) + 1):
+                if (index - 1) % 10 == 0 or (index - 6) % 10 == 0:
+                    write_text.append(
+                        {"source": f"draw_{i}", "text": f"{combination[index-1]}"}
+                    )
+                if (index - 2) % 10 == 0 or (index - 7) % 10 == 0:
+                    write_text.append(
+                        {
+                            "source": f"draw_{i}",
+                            "text": f"{combination[index-1]} {combination[index-2]}",
+                        }
+                    )
+                if (index - 3) % 10 == 0 or (index - 8) % 10 == 0:
+                    write_text.append(
+                        {
+                            "source": f"draw_{i}",
+                            "text": f"{combination[index-1]} {combination[index-2]} {combination[index-3]}",
+                        }
+                    )
+                if (index - 4) % 10 == 0 or (index - 9) % 10 == 0:
+                    write_text.append(
+                        {
+                            "source": f"draw_{i}",
+                            "text": f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]}",
+                        }
+                    )
                 if index % 5 == 0:
-                    add_text(
-                        f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}",
-                        parent="Bingo",
-                        source=f"draw_{i}",
+                    write_text.append(
+                        {
+                            "source": f"draw_{i}",
+                            "text": f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]} {combination[index-5]}",
+                        }
                     )
                     i += 1
+        except Exception as e:
+            logger.error(traceback.format_exc())
+        finally:
+            return write_text
 
     def reset_combination(self, reset_text=True) -> None:
         try:
             combination = self.app_backend.get_combination_from_game()
-            combination = combination.split(",")
+            combination = list(reversed(combination.split(",")))
             for index in range(1, len(combination) + 1):
                 if index % 5 == 0:
                     delete_item(
-                        f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}"
+                        f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]} {combination[index-5]}"
                     )
             if reset_text:
                 self.update_game_id_text("N/A")
