@@ -1,6 +1,6 @@
 PyPDF2
 PyInstaller
-dearpygui
+dearpygui==0.6.42
 loguru
 reportlab
 webbrowser
