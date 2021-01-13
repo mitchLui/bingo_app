@@ -4,9 +4,6 @@ from loguru import logger
 from app_backend import App_backend
 import os
 import traceback
-from concurrent.futures import ThreadPoolExecutor
-import time
-
 
 class App:
     def __init__(self) -> None:
@@ -49,7 +46,6 @@ class App:
             self.close_window("Create New Game", None)
             self.close_window("Load Game", None)
             self.reset_combination()
-            self.remove_combination()
             self.check_init()
         except Exception:
             pass
@@ -72,11 +68,6 @@ class App:
             logger.debug(combination)
             self.write_combination(combination)
 
-    def remove_combination(self):
-        delete_item("Next Number")
-        delete_item("Show all numbers")
-        delete_item("block")
-
     def write_combination(self, combination: list) -> None:
         add_button(
             "Next Number",
@@ -95,71 +86,28 @@ class App:
 
     def get_combination_all(self, sender, combination) -> list:
         write_text = []
-        try:
-            self.reset_combination(False)
-            i = 1
-            for index in range(1, len(combination) + 1):
-                if index % 5 == 0:
-                    write_text.append(
-                        {
-                            "source": f"draw_{i}",
-                            "text": f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}",
-                        }
-                    )
-                    i += 1
-        except Exception:
-            logger.error(traceback.format_exc())
-        current = ""
-        last = ""
-        for elem in write_text:
-            current = elem["source"]
-            text = elem["text"]
-            if last != current:
-                add_text(text, parent=self.app_name, source=current)
-            else:
-                set_value(current, text)
-            last = current
-        self.remove_combination()
-        return
+        self.reset_combination(False)
+        logger.debug(combination)
+        for index in range(0, len(combination), 5):
+            write_text.append(" ".join(combination[index : index + 5]))
+        for text in write_text:
+            logger.debug(f"text: {text}")
+            add_text(text, parent=self.app_name)
+        self.reset_combination_properties()
 
     def get_combination_one_by_one(self, sender, combination) -> list:
         write_text = []
         try:
             i = 1
-            for index in range(1, len(combination) + 1):
-                if (index - 1) % 10 == 0 or (index - 6) % 10 == 0:
-                    write_text.append(
-                        {"source": f"draw_{i}", "text": f"{combination[index-5]}"}
-                    )
-                if (index - 2) % 10 == 0 or (index - 7) % 10 == 0:
+            for index in range(0, len(combination), 5):
+                for j in range(1, 6):
                     write_text.append(
                         {
                             "source": f"draw_{i}",
-                            "text": f"{combination[index-1]} {combination[index-2]}",
+                            "text": " ".join(combination[index : index + j]),
                         }
                     )
-                if (index - 3) % 10 == 0 or (index - 8) % 10 == 0:
-                    write_text.append(
-                        {
-                            "source": f"draw_{i}",
-                            "text": f"{combination[index-1]} {combination[index-2]} {combination[index-3]}",
-                        }
-                    )
-                if (index - 4) % 10 == 0 or (index - 9) % 10 == 0:
-                    write_text.append(
-                        {
-                            "source": f"draw_{i}",
-                            "text": f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]}",
-                        }
-                    )
-                if index % 5 == 0:
-                    write_text.append(
-                        {
-                            "source": f"draw_{i}",
-                            "text": f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]} {combination[index-5]}",
-                        }
-                    )
-                    i += 1
+                i += 1
         except Exception:
             logger.error(traceback.format_exc())
         try:
@@ -173,7 +121,6 @@ class App:
                 delete_data("source")
                 add_data("source", write_text[0]["source"])
             current_source = get_data("source")
-            logger.debug(f"cs: {current_source}")
             if current_source != last_source:
                 add_text(
                     write_text[index]["text"],
@@ -189,12 +136,8 @@ class App:
             add_data("last_source", current_source)
             delete_data("source")
             add_data("source", write_text[index + 1]["source"])
-            logger.info(f"{get_data('num_index') - 1}")
-            logger.info(f"{len(write_text)}")
         except IndexError:
-            logger.info("reset")
-            self.remove_combination()
-            self.reset_data()
+            self.reset_combination_properties()
         return
 
     def reset_data(self) -> None:
@@ -202,29 +145,23 @@ class App:
         add_data("last_source", None)
         add_data("source", None)
 
+    def reset_combination_properties(self):
+        delete_item("Next Number")
+        delete_item("Show all numbers")
+        delete_item("block")
+
     def reset_combination(self, reset_text=True) -> None:
         try:
             combination = self.app_backend.get_combination_from_game()
             combination = list(reversed(combination.split(",")))
-            for index in range(1, len(combination) + 1):
-                if (index - 1) % 10 == 0 or (index - 6) % 10 == 0:
-                    delete_item(f"{combination[index-1]}")
-                if (index - 2) % 10 == 0 or (index - 7) % 10 == 0:
-                    delete_item(f"{combination[index-1]} {combination[index-2]}")
-                if (index - 3) % 10 == 0 or (index - 8) % 10 == 0:
-                    delete_item(
-                        f"{combination[index-1]} {combination[index-2]} {combination[index-3]}"
-                    )
-                if (index - 4) % 10 == 0 or (index - 9) % 10 == 0:
-                    delete_item(
-                        f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]}"
-                    )
-                if index % 5 == 0:
-                    delete_item(
-                        f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]} {combination[index-5]}"
-                    )
+            for index in range(0, len(combination), 5):
+                for j in range(1, 6):
+                    text = " ".join(combination[index : index + j])
+                    delete_item(text)
             if reset_text:
                 self.update_game_id_text("N/A")
+            self.reset_combination_properties()
+            self.reset_data()
         except:
             pass
 
@@ -253,8 +190,7 @@ class App:
             self.close_window("Open Game", None)
             self.close_window("Load Game", None)
             self.check_init()
-            self.reset_combination()
-            self.remove_combination()
+            self.reset_combination(True)
         except Exception:
             pass
         with window("Open Game", on_close=self.close_window, width=1000, height=400):
