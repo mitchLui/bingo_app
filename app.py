@@ -12,6 +12,7 @@ class App:
     def __init__(self) -> None:
         self.cwd = os.getcwd()
         logger.info(f"CWD: {self.cwd}")
+        self.app_name = "Bingo"
         self.init = False
         self.app_backend = None
 
@@ -48,6 +49,7 @@ class App:
             self.close_window("Create New Game", None)
             self.close_window("Load Game", None)
             self.reset_combination()
+            self.remove_combination()
             self.check_init()
         except Exception:
             pass
@@ -58,7 +60,7 @@ class App:
         combination = self.app_backend.get_combination_from_game()
         if not combination:
             logger.info("No combo")
-            add_button("Draw", callback=self.create_combination, parent="Bingo")
+            add_button("Draw", callback=self.create_combination, parent=self.app_name)
         else:
             try:
                 delete_item("Draw")
@@ -67,40 +69,67 @@ class App:
             except Exception:
                 pass
             combination = list(reversed(combination.split(",")))
-            try:
-                #!DEBUG
-                run_async_function(
-                    self.combination_handler,
-                    data=combination,
-                    return_handler=self.combination_return_handler,
-                )
-                logger.debug("End")
-            except:
-                logger.error(traceback.format_exc())
+            logger.debug(combination)
+            self.write_combination(combination)
 
-    def combination_return_handler(self, sender, data) -> None:
-        logger.info(f"handler {data}")
-        add_text("Winning numbers:", parent="Bingo")
+    def remove_combination(self):
+        delete_item("Next Number")
+        delete_item("Show all numbers")
+        delete_item("block")
+
+    def write_combination(self, combination: list) -> None:
+        add_button(
+            "Next Number",
+            parent=self.app_name,
+            callback=self.get_combination_one_by_one,
+            callback_data=combination,
+        )
+        add_button(
+            "Show all numbers",
+            parent=self.app_name,
+            callback=self.get_combination_all,
+            callback_data=combination,
+        )
+        add_text("Winning numbers:", parent=self.app_name)
+        add_spacing(name="block", parent=self.app_name)
+
+    def get_combination_all(self, sender, combination) -> list:
+        write_text = []
+        try:
+            self.reset_combination(False)
+            i = 1
+            for index in range(1, len(combination) + 1):
+                if index % 5 == 0:
+                    write_text.append(
+                        {
+                            "source": f"draw_{i}",
+                            "text": f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}",
+                        }
+                    )
+                    i += 1
+        except Exception:
+            logger.error(traceback.format_exc())
         current = ""
         last = ""
-        for elem in data:
+        for elem in write_text:
             current = elem["source"]
             text = elem["text"]
             if last != current:
-                add_text(text, parent="Bingo", source=current)
+                add_text(text, parent=self.app_name, source=current)
             else:
                 set_value(current, text)
             last = current
+        self.remove_combination()
+        return
 
-    def combination_handler(self, sender, combination) -> list:
+    def get_combination_one_by_one(self, sender, combination) -> list:
         write_text = []
         try:
-            logger.debug(combination)
             i = 1
             for index in range(1, len(combination) + 1):
                 if (index - 1) % 10 == 0 or (index - 6) % 10 == 0:
                     write_text.append(
-                        {"source": f"draw_{i}", "text": f"{combination[index-1]}"}
+                        {"source": f"draw_{i}", "text": f"{combination[index-5]}"}
                     )
                 if (index - 2) % 10 == 0 or (index - 7) % 10 == 0:
                     write_text.append(
@@ -131,16 +160,65 @@ class App:
                         }
                     )
                     i += 1
-        except Exception as e:
+        except Exception:
             logger.error(traceback.format_exc())
-        finally:
-            return write_text
+        try:
+            last_source = get_data("last_source")
+            index = get_data("num_index")
+            if index == None:
+                delete_data("num_index")
+                add_data("num_index", 0)
+                index = 0
+            if get_data("source") == None:
+                delete_data("source")
+                add_data("source", write_text[0]["source"])
+            current_source = get_data("source")
+            logger.debug(f"cs: {current_source}")
+            if current_source != last_source:
+                add_text(
+                    write_text[index]["text"],
+                    parent=self.app_name,
+                    source=current_source,
+                    before="block",
+                )
+            else:
+                set_value(current_source, write_text[index]["text"])
+            delete_data("num_index")
+            add_data("num_index", index + 1)
+            delete_data("last_source")
+            add_data("last_source", current_source)
+            delete_data("source")
+            add_data("source", write_text[index + 1]["source"])
+            logger.info(f"{get_data('num_index') - 1}")
+            logger.info(f"{len(write_text)}")
+        except IndexError:
+            logger.info("reset")
+            self.remove_combination()
+            self.reset_data()
+        return
+
+    def reset_data(self) -> None:
+        add_data("num_index", None)
+        add_data("last_source", None)
+        add_data("source", None)
 
     def reset_combination(self, reset_text=True) -> None:
         try:
             combination = self.app_backend.get_combination_from_game()
             combination = list(reversed(combination.split(",")))
             for index in range(1, len(combination) + 1):
+                if (index - 1) % 10 == 0 or (index - 6) % 10 == 0:
+                    delete_item(f"{combination[index-1]}")
+                if (index - 2) % 10 == 0 or (index - 7) % 10 == 0:
+                    delete_item(f"{combination[index-1]} {combination[index-2]}")
+                if (index - 3) % 10 == 0 or (index - 8) % 10 == 0:
+                    delete_item(
+                        f"{combination[index-1]} {combination[index-2]} {combination[index-3]}"
+                    )
+                if (index - 4) % 10 == 0 or (index - 9) % 10 == 0:
+                    delete_item(
+                        f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]}"
+                    )
                 if index % 5 == 0:
                     delete_item(
                         f"{combination[index-1]} {combination[index-2]} {combination[index-3]} {combination[index-4]} {combination[index-5]}"
@@ -176,6 +254,7 @@ class App:
             self.close_window("Load Game", None)
             self.check_init()
             self.reset_combination()
+            self.remove_combination()
         except Exception:
             pass
         with window("Open Game", on_close=self.close_window, width=1000, height=400):
@@ -313,7 +392,7 @@ class App:
             add_button("Load game", callback=self.open_game_window)
 
     def show(self) -> None:
-        with window("Bingo"):
+        with window(self.app_name):
             set_main_window_size(1920, 1080)
             set_main_window_resizable(True)
             set_global_font_scale(1.25)
@@ -330,11 +409,12 @@ class App:
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
 
-            add_text(f"Game ID: N/A", source="game_id_display", parent="Bingo")
+            add_text(f"Game ID: N/A", source="game_id_display", parent=self.app_name)
+            self.reset_data()
 
         self.load_game()
 
-        start_dearpygui(primary_window="Bingo")
+        start_dearpygui(primary_window=self.app_name)
 
 
 if __name__ == "__main__":
