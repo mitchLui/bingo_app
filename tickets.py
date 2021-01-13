@@ -7,6 +7,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 import unittest
+import platform
 import os
 
 
@@ -64,7 +65,10 @@ class Tickets:
             pass
 
     def generate_ticket(self, ticket: dict, game_number=1) -> str:
-        original_path = os.getcwd()
+        if platform.system() == "Windows":
+            original_path = os.getenv("APPDATA")
+        else:
+            original_path = os.getcwd()
         self.create_dir(game_number)
         logger.debug(f"{original_path}")
         os.chdir(f"{original_path}/tickets/game_{game_number}")

@@ -2,6 +2,7 @@ from dearpygui.core import *
 from dearpygui.simple import *
 from loguru import logger
 from app_backend import App_backend
+import platform
 import os
 import traceback
 
@@ -15,7 +16,10 @@ class App:
 
     def check_init(self) -> None:
         if not self.init:
-            self.app_backend = App_backend(os.getcwd(), "bingo.db")
+            if platform.system() == "Windows":
+                self.app_backend = App_backend(os.getenv("APPDATA"), "bingo.db")
+            else:
+                self.app_backend = App_backend(os.getcwd(), "bingo.db")
             self.init = True
 
     def verify_game(self, sender, data) -> None:
