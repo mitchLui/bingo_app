@@ -102,8 +102,7 @@ class Tests(unittest.TestCase):
         return test_data
 
     def test_create_ticket(self):
-        combinations = list(range(35))
-        self.test_class.create_game(combinations)
+        self.test_class.create_game()
         test_data = self.generate_dummy_data()
         self.test_class.create_ticket(test_data)
         num_of_tickets, tickets = self.test_class.open_game()

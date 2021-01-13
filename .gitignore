@@ -134,6 +134,7 @@ dmypy.json
 tickets/
 
 # database
+app.spec
 test.db
 test.db-journal
 bingo.db
