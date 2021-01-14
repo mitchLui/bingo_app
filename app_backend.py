@@ -84,14 +84,14 @@ class App_backend:
     def get_combination_from_game(self) -> tuple:
         combination = self.db.get_combination(self.game_id)
         return combination[0][0]
-    
+
     def reset_app(self) -> None:
         try:
             if platform.system() == "Windows":
                 path = os.getenv("APPDATA")
                 os.remove(f"{path}\\{self.db_name}")
-                shutil.rmtree(f"{path}\\tickets") 
-            else: 
+                shutil.rmtree(f"{path}\\tickets")
+            else:
                 os.remove(f"{self.directory}/{self.db_name}")
                 shutil.rmtree(f"{self.directory}/tickets")
         except:

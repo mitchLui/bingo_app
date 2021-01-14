@@ -6,6 +6,7 @@ import platform
 import os
 import traceback
 
+
 class App:
     def __init__(self) -> None:
         self.cwd = os.getcwd()
@@ -333,7 +334,7 @@ class App:
         with window("Load Game", autosize=True, on_close=self.verify_game):
             add_button("Create new game", callback=self.create_game_window)
             add_button("Load game", callback=self.open_game_window)
-    
+
     def reset_callback(self, sender, data) -> None:
         self.check_init()
         self.app_backend.reset_app()
@@ -344,9 +345,12 @@ class App:
 
     def reset_window(self, sender, data) -> None:
         with window("Reset#", autosize=True):
-            add_text("Are you sure you want to reset?\nYou cannot reverse this action.", parent="Reset#")
+            add_text(
+                "Are you sure you want to reset?\nYou cannot reverse this action.",
+                parent="Reset#",
+            )
             add_button("Confirm", callback=self.reset_callback)
-    
+
     def close_app(self, sender, data):
         stop_dearpygui()
 
