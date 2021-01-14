@@ -2,23 +2,30 @@ from dearpygui.core import *
 from dearpygui.simple import *
 from loguru import logger
 from app_backend import App_backend
+import platform
 import os
+import traceback
 
 
 class App:
     def __init__(self) -> None:
         self.cwd = os.getcwd()
         logger.info(f"CWD: {self.cwd}")
+        self.app_name = "Bingo"
         self.init = False
         self.app_backend = None
 
     def check_init(self) -> None:
         if not self.init:
-            self.app_backend = App_backend(os.getcwd(), "bingo.db")
+            if platform.system() == "Windows":
+                self.app_backend = App_backend(os.getenv("APPDATA"), "bingo.db")
+            else:
+                self.app_backend = App_backend(os.getcwd(), "bingo.db")
             self.init = True
 
     def verify_game(self, sender, data) -> None:
         try:
+            self.close_window(sender)
             delete_item("Error")
         except:
             pass
@@ -48,14 +55,14 @@ class App:
             self.check_init()
         except Exception:
             pass
-        with window("Create New Game", on_close=self.close_window, autosize=True):
+        with window("Create New Game", on_close=self.verify_game, autosize=True):
             add_button("Confirm", callback=self.create_game)
 
     def get_combinations(self) -> None:
         combination = self.app_backend.get_combination_from_game()
         if not combination:
             logger.info("No combo")
-            add_button("Draw", callback=self.create_combination, parent="Bingo")
+            add_button("Draw", callback=self.create_combination, parent=self.app_name)
         else:
             try:
                 delete_item("Draw")
@@ -63,30 +70,104 @@ class App:
                 self.reset_combination(False)
             except Exception:
                 pass
-            combination = combination.split(",")
+            combination = list(reversed(combination.split(",")))
             logger.debug(combination)
-            add_text("Winning numbers:", parent="Bingo")
+            self.write_combination(combination)
+
+    def write_combination(self, combination: list) -> None:
+        add_button(
+            "Next Number",
+            parent=self.app_name,
+            callback=self.get_combination_one_by_one,
+            callback_data=combination,
+        )
+        add_button(
+            "Show all numbers",
+            parent=self.app_name,
+            callback=self.get_combination_all,
+            callback_data=combination,
+        )
+        add_text("Winning numbers:", parent=self.app_name)
+        add_spacing(name="block", parent=self.app_name)
+
+    def get_combination_all(self, sender, combination) -> list:
+        write_text = []
+        self.reset_combination(False)
+        logger.debug(combination)
+        for index in range(0, len(combination), 5):
+            write_text.append(" ".join(combination[index : index + 5]))
+        for text in write_text:
+            logger.debug(f"text: {text}")
+            add_text(text, parent=self.app_name)
+        self.reset_combination_properties()
+
+    def get_combination_one_by_one(self, sender, combination) -> list:
+        write_text = []
+        try:
             i = 1
-            for index in range(1, len(combination) + 1):
-                if index % 5 == 0:
-                    add_text(
-                        f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}",
-                        parent="Bingo",
-                        source=f"draw_{i}",
+            for index in range(0, len(combination), 5):
+                for j in range(1, 6):
+                    write_text.append(
+                        {
+                            "source": f"draw_{i}",
+                            "text": " ".join(combination[index : index + j]),
+                        }
                     )
-                    i += 1
+                i += 1
+        except Exception:
+            logger.error(traceback.format_exc())
+        try:
+            last_source = get_data("last_source")
+            index = get_data("num_index")
+            if index == None:
+                delete_data("num_index")
+                add_data("num_index", 0)
+                index = 0
+            if get_data("source") == None:
+                delete_data("source")
+                add_data("source", write_text[0]["source"])
+            current_source = get_data("source")
+            if current_source != last_source:
+                add_text(
+                    write_text[index]["text"],
+                    parent=self.app_name,
+                    source=current_source,
+                    before="block",
+                )
+            else:
+                set_value(current_source, write_text[index]["text"])
+            delete_data("num_index")
+            add_data("num_index", index + 1)
+            delete_data("last_source")
+            add_data("last_source", current_source)
+            delete_data("source")
+            add_data("source", write_text[index + 1]["source"])
+        except IndexError:
+            self.reset_combination_properties()
+        return
+
+    def reset_data(self) -> None:
+        add_data("num_index", None)
+        add_data("last_source", None)
+        add_data("source", None)
+
+    def reset_combination_properties(self):
+        delete_item("Next Number")
+        delete_item("Show all numbers")
+        delete_item("block")
 
     def reset_combination(self, reset_text=True) -> None:
         try:
             combination = self.app_backend.get_combination_from_game()
-            combination = combination.split(",")
-            for index in range(1, len(combination) + 1):
-                if index % 5 == 0:
-                    delete_item(
-                        f"{combination[index-5]} {combination[index-4]} {combination[index-3]} {combination[index-2]} {combination[index-1]}"
-                    )
+            combination = list(reversed(combination.split(",")))
+            for index in range(0, len(combination), 5):
+                for j in range(1, 6):
+                    text = " ".join(combination[index : index + j])
+                    delete_item(text)
             if reset_text:
                 self.update_game_id_text("N/A")
+            self.reset_combination_properties()
+            self.reset_data()
         except:
             pass
 
@@ -115,10 +196,10 @@ class App:
             self.close_window("Open Game", None)
             self.close_window("Load Game", None)
             self.check_init()
-            self.reset_combination()
+            self.reset_combination(True)
         except Exception:
             pass
-        with window("Open Game", on_close=self.close_window, width=1000, height=400):
+        with window("Open Game", on_close=self.verify_game, width=1000, height=400):
             self.open_games_table()
             add_button("Cancel", callback=self.close_open_game)
 
@@ -240,7 +321,10 @@ class App:
         if isinstance(data, list):
             path = f"{data[0]}/{data[1]}"
         else:
-            path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
+            if platform.system() == "Windows":
+                path = f"{os.getenv('APPDATA')}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
+            else:
+                path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
         self.app_backend.open_ticket(path)
 
     def open_ticket_window(self, sender, data) -> None:
@@ -248,12 +332,30 @@ class App:
 
     def load_game(self) -> None:
         with window("Load Game", autosize=True, on_close=self.verify_game):
-
             add_button("Create new game", callback=self.create_game_window)
             add_button("Load game", callback=self.open_game_window)
 
+    def reset_callback(self, sender, data) -> None:
+        self.check_init()
+        self.app_backend.reset_app()
+        delete_item("Reset#")
+        with window("Reset##", on_close=self.close_app):
+            add_text("Reset complete.\nRestart the app to complete reset.")
+            add_button("Close App", callback=self.close_app)
+
+    def reset_window(self, sender, data) -> None:
+        with window("Reset#", autosize=True):
+            add_text(
+                "Are you sure you want to reset?\nYou cannot reverse this action.",
+                parent="Reset#",
+            )
+            add_button("Confirm", callback=self.reset_callback)
+
+    def close_app(self, sender, data):
+        stop_dearpygui()
+
     def show(self) -> None:
-        with window("Bingo"):
+        with window(self.app_name):
             set_main_window_size(1920, 1080)
             set_main_window_resizable(True)
             set_global_font_scale(1.25)
@@ -269,12 +371,14 @@ class App:
 
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
+                    add_menu_item("Reset", callback=self.reset_window)
 
-            add_text(f"Game ID: N/A", source="game_id_display", parent="Bingo")
+            add_text(f"Game ID: N/A", source="game_id_display", parent=self.app_name)
+            self.reset_data()
 
         self.load_game()
 
-        start_dearpygui(primary_window="Bingo")
+        start_dearpygui(primary_window=self.app_name)
 
 
 if __name__ == "__main__":

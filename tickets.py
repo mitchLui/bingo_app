@@ -7,6 +7,8 @@ from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
 from reportlab.lib import colors
 import unittest
+import traceback
+import platform
 import os
 
 
@@ -61,13 +63,19 @@ class Tickets:
             os.chdir("tickets")
             os.mkdir(f"game_{game_number}")
         except Exception:
-            pass
+            logger.error(traceback.format_exc())
 
     def generate_ticket(self, ticket: dict, game_number=1) -> str:
-        original_path = os.getcwd()
+        if platform.system() == "Windows":
+            original_path = os.getenv("APPDATA")
+            new_path = f"{original_path}\\tickets\\game_{game_number}"
+            os.chdir(original_path)
+        else:
+            original_path = os.getcwd()
+            new_path = f"{original_path}/tickets/game_{game_number}"
         self.create_dir(game_number)
         logger.debug(f"{original_path}")
-        os.chdir(f"{original_path}/tickets/game_{game_number}")
+        os.chdir(new_path)
         ticket_number = len(os.listdir()) + 1
         path = f"ticket_{ticket_number}.pdf"
         doc = self.create_ticket(path)
@@ -79,7 +87,10 @@ class Tickets:
         doc.build(elements)
         logger.info(f"Ticket {game_number}-{ticket_number} Generated.")
         os.chdir(original_path)
-        path = f"game_{game_number}/{path}"
+        if platform.system() == "Windows":
+            path = f"game_{game_number}\\{path}"
+        else:
+            path = f"game_{game_number}/{path}"
         return path
 
 
@@ -93,7 +104,7 @@ class Tests(unittest.TestCase):
             "numbers": [[1, 2, 3, 4, 5, 6]],
             "amount": 100,
         }
-        self.test_class.generate_ticket(dummy_ticket_data, 1, 1)
+        self.test_class.generate_ticket(dummy_ticket_data, 1)
 
 
 if __name__ == "__main__":

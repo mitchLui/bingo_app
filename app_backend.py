@@ -6,12 +6,15 @@ import unittest
 import random
 import shutil
 import os
+import platform
 import webbrowser
 
 
 class App_backend:
     def __init__(self, directory: str, db_name="bingo.db") -> None:
         logger.info(directory)
+        self.directory = directory
+        self.db_name = db_name
         self.db = Database(directory, db_name)
         self.game = Game(db=self.db)
         self.game_id = 0
@@ -82,6 +85,18 @@ class App_backend:
         combination = self.db.get_combination(self.game_id)
         return combination[0][0]
 
+    def reset_app(self) -> None:
+        try:
+            if platform.system() == "Windows":
+                path = os.getenv("APPDATA")
+                os.remove(f"{path}\\{self.db_name}")
+                shutil.rmtree(f"{path}\\tickets")
+            else:
+                os.remove(f"{self.directory}/{self.db_name}")
+                shutil.rmtree(f"{self.directory}/tickets")
+        except:
+            pass
+
 
 class Tests(unittest.TestCase):
     def setUp(self) -> None:
@@ -102,8 +117,7 @@ class Tests(unittest.TestCase):
         return test_data
 
     def test_create_ticket(self):
-        combinations = list(range(35))
-        self.test_class.create_game(combinations)
+        self.test_class.create_game()
         test_data = self.generate_dummy_data()
         self.test_class.create_ticket(test_data)
         num_of_tickets, tickets = self.test_class.open_game()
