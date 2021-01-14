@@ -24,6 +24,7 @@ class App:
 
     def verify_game(self, sender, data) -> None:
         try:
+            self.close_window(sender)
             delete_item("Error")
         except:
             pass
@@ -53,7 +54,7 @@ class App:
             self.check_init()
         except Exception:
             pass
-        with window("Create New Game", on_close=self.close_window, autosize=True):
+        with window("Create New Game", on_close=self.verify_game, autosize=True):
             add_button("Confirm", callback=self.create_game)
 
     def get_combinations(self) -> None:
@@ -197,7 +198,7 @@ class App:
             self.reset_combination(True)
         except Exception:
             pass
-        with window("Open Game", on_close=self.close_window, width=1000, height=400):
+        with window("Open Game", on_close=self.verify_game, width=1000, height=400):
             self.open_games_table()
             add_button("Cancel", callback=self.close_open_game)
 
@@ -319,7 +320,10 @@ class App:
         if isinstance(data, list):
             path = f"{data[0]}/{data[1]}"
         else:
-            path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
+            if platform.system() == "Windows":
+                path = f"{os.getenv('APPDATA')}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
+            else:
+                path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
         self.app_backend.open_ticket(path)
 
     def open_ticket_window(self, sender, data) -> None:
@@ -327,9 +331,24 @@ class App:
 
     def load_game(self) -> None:
         with window("Load Game", autosize=True, on_close=self.verify_game):
-
             add_button("Create new game", callback=self.create_game_window)
             add_button("Load game", callback=self.open_game_window)
+    
+    def reset_callback(self, sender, data) -> None:
+        self.check_init()
+        self.app_backend.reset_app()
+        delete_item("Reset#")
+        with window("Reset##", on_close=self.close_app):
+            add_text("Reset complete.\nRestart the app to complete reset.")
+            add_button("Close App", callback=self.close_app)
+
+    def reset_window(self, sender, data) -> None:
+        with window("Reset#", autosize=True):
+            add_text("Are you sure you want to reset?\nYou cannot reverse this action.", parent="Reset#")
+            add_button("Confirm", callback=self.reset_callback)
+    
+    def close_app(self, sender, data):
+        stop_dearpygui()
 
     def show(self) -> None:
         with window(self.app_name):
@@ -348,6 +367,7 @@ class App:
 
                 with menu("Settings"):
                     add_menu_item("Show style menu", callback=show_style_editor)
+                    add_menu_item("Reset", callback=self.reset_window)
 
             add_text(f"Game ID: N/A", source="game_id_display", parent=self.app_name)
             self.reset_data()
