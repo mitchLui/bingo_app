@@ -358,6 +358,7 @@ class App:
         with window(self.app_name):
             set_main_window_size(1920, 1080)
             set_main_window_resizable(True)
+            add_additional_font("HelveticaNeue.ttf")
             set_global_font_scale(1.25)
             with menu_bar("Main Menu Bar"):
 
