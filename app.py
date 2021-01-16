@@ -47,7 +47,7 @@ class App:
     def create_game(self, sender, data) -> None:
         self.app_backend.create_game()
         logger.info(f"Created Game ID: {self.app_backend.game_id}")
-        delete_item("Create Game")
+        delete_item("Create New Game")
         self.update_game_id_text(self.app_backend.game_id)
         self.get_combinations()
 
