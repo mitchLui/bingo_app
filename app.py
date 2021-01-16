@@ -29,13 +29,17 @@ class App:
             delete_item("Error")
         except:
             pass
-        if not self.init:
+        logger.debug(f"self.init: {self.init}")
+        logger.debug(
+            f"self.init and self.app_backend.game_id is None: {self.init and self.app_backend.game_id is None}"
+        )
+        if not self.init or (self.init and self.app_backend.game_id is None):
             delete_item("Load Game")
             self.load_game()
             self.error_window("Please create or choose a game.")
-
-    def close_window(self, sender, data) -> None:
-        delete_item(sender)
+            return False
+        else:
+            return True
 
     def update_game_id_text(self, game_id: int) -> None:
         set_value("game_id_display", f"Game ID: {game_id}")
@@ -46,17 +50,6 @@ class App:
         delete_item("Create New Game")
         self.update_game_id_text(self.app_backend.game_id)
         self.get_combinations()
-
-    def create_game_window(self, sender, data) -> None:
-        try:
-            self.close_window("Create New Game", None)
-            self.close_window("Load Game", None)
-            self.reset_combination()
-            self.check_init()
-        except Exception:
-            pass
-        with window("Create New Game", on_close=self.verify_game, autosize=True):
-            add_button("Confirm", callback=self.create_game)
 
     def get_combinations(self) -> None:
         combination = self.app_backend.get_combination_from_game()
@@ -89,6 +82,24 @@ class App:
         )
         add_text("Winning numbers:", parent=self.app_name)
         add_spacing(name="block", parent=self.app_name)
+        main_window_size = get_main_window_size()
+        x_pos = int(main_window_size[0] / 2) - 160
+        y_pos = int(main_window_size[1] / 2) - 160
+        with window(
+            "Number",
+            x_pos=x_pos,
+            y_pos=y_pos,
+            width=200,
+            height=200,
+            no_move = True,
+            no_scrollbar=True,
+            no_resize=True,
+            no_close=True,
+            no_collapse=True,
+        ):
+            # TODO
+            add_drawing("num_drawing", parent="Number", width=1000, height=1500)
+            draw_text("num_drawing", [25.0, 25.0], "", size=10)
 
     def get_combination_all(self, sender, combination) -> list:
         write_text = []
@@ -105,18 +116,30 @@ class App:
         write_text = []
         try:
             i = 1
-            for index in range(0, len(combination), 5):
-                for j in range(1, 6):
-                    write_text.append(
-                        {
-                            "source": f"draw_{i}",
-                            "text": " ".join(combination[index : index + j]),
-                        }
-                    )
-                i += 1
+            numbers = []
+            number = 0
+            for index, number in enumerate(combination):
+                element = {
+                    "source": f"draw_{i}",
+                    "text": " ".join(numbers),
+                    "current": number,
+                }
+                if len(numbers) == 5:
+                    numbers.clear()
+                    i += 1
+                numbers.append(number)
+                write_text.append(element)
+            last_elem = {
+                "source": f"draw_{i}",
+                "text": " ".join(numbers),
+                "current": "All numbers are drawn",
+            }
+            write_text.append(last_elem)
+            logger.debug(write_text)
         except Exception:
             logger.error(traceback.format_exc())
         try:
+            logger.debug(write_text)
             last_source = get_data("last_source")
             index = get_data("num_index")
             if index == None:
@@ -136,6 +159,9 @@ class App:
                 )
             else:
                 set_value(current_source, write_text[index]["text"])
+            # TODO
+            clear_drawing("num_drawing")
+            draw_text("num_drawing", [59, 45], write_text[index]["current"], size=60)
             delete_data("num_index")
             add_data("num_index", index + 1)
             delete_data("last_source")
@@ -155,6 +181,7 @@ class App:
         delete_item("Next Number")
         delete_item("Show all numbers")
         delete_item("block")
+        delete_item("Number")
 
     def reset_combination(self, reset_text=True) -> None:
         try:
@@ -191,24 +218,10 @@ class App:
         for game in games:
             add_row(table_name, [f"{game['game_id']}", f"{game['created_datetime']}"])
 
-    def open_game_window(self, sender, data) -> None:
-        try:
-            self.close_window("Open Game", None)
-            self.close_window("Load Game", None)
-            self.check_init()
-            self.reset_combination(True)
-        except Exception:
-            pass
-        with window("Open Game", on_close=self.verify_game, width=1000, height=400):
-            self.open_games_table()
-            add_button("Cancel", callback=self.close_open_game)
-
-    def close_open_game(self, sender, data) -> None:
-        delete_item("Open Game")
-
     def check_numbers(self, numbers: list) -> tuple:
         valid = False
         index = 0
+        number = 0
         error = ""
         try:
             for index, number in enumerate(numbers):
@@ -217,14 +230,14 @@ class App:
                     valid = True
                 else:
                     valid = False
-                    error = f"Number is not between 1 and 48. (Number: {index+1})"
+                    error = f"Number is not between 1 and 48.\n(Number: {index+1}, Value: {number})"
                     break
             if len(set(numbers)) != 6:
                 valid = False
                 error = f"Duplicate numbers. Check input."
         except Exception:
             valid = False
-            error = f"Did not enter a number (Number: {index+1})"
+            error = f"Did not enter a number (Number: {index+1}, Value: {number})"
         finally:
             return valid, error, numbers
 
@@ -286,26 +299,74 @@ class App:
                 )
                 add_button("Close Window", callback=self.close_create_ticket_window)
 
+    def open_ticket(self, sender, data) -> None:
+        if isinstance(data, list):
+            path = f"{data[0]}/{data[1]}"
+        else:
+            if platform.system() == "Windows":
+                path = f"{os.getenv('APPDATA')}\\tickets\\game_{self.app_backend.game_id}\\ticket_{data}.pdf"
+            else:
+                path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
+        self.app_backend.open_ticket(path)
+        os.chdir(get_value("original_path"))
+
+    def close_window(self, sender, data) -> None:
+        delete_item(sender)
+
+    def close_error(self, sender, data) -> None:
+        delete_item("Error")
+
+    def close_open_game(self, sender, data) -> None:
+        self.verify_game(None, None)
+        delete_item("Open Game")
+
     def close_create_ticket_window(self, sender, data) -> None:
         delete_item("Confirm new ticket")
+
+    def reset_window(self, sender, data) -> None:
+        with window("Reset#", autosize=True):
+            add_text(
+                "Are you sure you want to reset?\nYou cannot reverse this action.",
+                parent="Reset#",
+            )
+            add_button("Confirm", callback=self.reset_callback)
 
     def error_window(self, error: str) -> None:
         with window("Error", on_close=self.close_window):
             add_text(error)
             add_button("OK", callback=self.close_error)
 
-    def close_error(self, sender, data) -> None:
-        delete_item("Error")
+    def create_game_window(self, sender, data) -> None:
+        try:
+            self.close_window("Create New Game", None)
+            self.close_window("Load Game", None)
+            self.reset_combination()
+            self.check_init()
+        except Exception:
+            pass
+        with window("Create New Game", on_close=self.verify_game, autosize=True):
+            add_text("Create a new game?")
+            add_button("Confirm", callback=self.create_game)
+
+    def open_game_window(self, sender, data) -> None:
+        try:
+            self.close_window("Open Game", None)
+            self.close_window("Load Game", None)
+            self.check_init()
+            self.reset_combination(True)
+        except Exception:
+            pass
+        with window("Open Game", on_close=self.verify_game, width=1000, height=400):
+            self.open_games_table()
+            add_button("Cancel", callback=self.close_open_game)
 
     def create_ticket_window(self, sender, data) -> None:
         try:
             self.close_window("Create New Ticket", None)
             self.close_window("Load Game", None)
         except Exception:
-            pass
-        if not self.init:
-            self.verify_game(None, None)
-        else:
+            return
+        if self.verify_game(None, None):
             with window("Create New Ticket", autosize=True, on_close=self.close_window):
                 add_input_text("Name", source="ticket_name")
                 add_input_text("Amount", source="bet_amount")
@@ -317,18 +378,17 @@ class App:
                 add_input_text("Number 6", source="ticket_num_6")
                 add_button("Create Ticket", callback=self.create_ticket)
 
-    def open_ticket(self, sender, data) -> None:
-        if isinstance(data, list):
-            path = f"{data[0]}/{data[1]}"
-        else:
-            if platform.system() == "Windows":
-                path = f"{os.getenv('APPDATA')}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
-            else:
-                path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}/ticket_{data}.pdf"
-        self.app_backend.open_ticket(path)
-
     def open_ticket_window(self, sender, data) -> None:
-        open_file_dialog(callback=self.open_ticket)
+        if self.verify_game(None, None):
+            if platform.system() == "Windows":
+                original_path = os.getenv("APPDATA")
+                path = f"{original_path}\\tickets\\game_{self.app_backend.game_id}"
+            else:
+                original_path = os.getcwd()
+                path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}"
+            os.chdir(path)
+            set_value("original_path", original_path)
+            open_file_dialog(callback=self.open_ticket)
 
     def load_game(self) -> None:
         with window("Load Game", autosize=True, on_close=self.verify_game):
@@ -343,22 +403,50 @@ class App:
             add_text("Reset complete.\nRestart the app to complete reset.")
             add_button("Close App", callback=self.close_app)
 
-    def reset_window(self, sender, data) -> None:
-        with window("Reset#", autosize=True):
-            add_text(
-                "Are you sure you want to reset?\nYou cannot reverse this action.",
-                parent="Reset#",
-            )
-            add_button("Confirm", callback=self.reset_callback)
-
-    def close_app(self, sender, data):
+    def close_app(self, sender, data) -> None:
         stop_dearpygui()
+
+    def load_theme(self) -> None:
+        set_main_window_size(1920, 1080)
+        set_main_window_resizable(True)
+        add_additional_font("helvetica.ttf")
+        set_global_font_scale(1.5)
+        set_theme("Classic")
+        set_style_window_padding(11.00, 8.00)
+        set_style_frame_padding(4.00, 3.00)
+        set_style_item_spacing(8.00, 4.00)
+        set_style_item_inner_spacing(12.00, 4.00)
+        set_style_touch_extra_padding(0.00, 0.00)
+        set_style_indent_spacing(21.00)
+        set_style_scrollbar_size(12.00)
+        set_style_grab_min_size(10.00)
+        set_style_window_border_size(1.00)
+        set_style_child_border_size(1.00)
+        set_style_popup_border_size(1.00)
+        set_style_frame_border_size(0.00)
+        set_style_tab_border_size(0.00)
+        set_style_window_rounding(10.00)
+        set_style_child_rounding(0.00)
+        set_style_frame_rounding(4.00)
+        set_style_popup_rounding(4.00)
+        set_style_scrollbar_rounding(7.00)
+        set_style_grab_rounding(0.00)
+        set_style_tab_rounding(6.00)
+        set_style_window_title_align(0.50, 0.44)
+        set_style_window_menu_button_position(mvDir_Right)
+        set_style_color_button_position(mvDir_Left)
+        set_style_button_text_align(0.50, 0.50)
+        set_style_selectable_text_align(0.00, 0.00)
+        set_style_display_safe_area_padding(3.00, 3.00)
+        set_style_global_alpha(1.00)
+        set_style_antialiased_lines(True)
+        set_style_antialiased_fill(True)
+        set_style_curve_tessellation_tolerance(1.25)
+        set_style_circle_segment_max_error(1.60)
 
     def show(self) -> None:
         with window(self.app_name):
-            set_main_window_size(1920, 1080)
-            set_main_window_resizable(True)
-            set_global_font_scale(1.25)
+            self.load_theme()
             with menu_bar("Main Menu Bar"):
 
                 with menu("Game"):
