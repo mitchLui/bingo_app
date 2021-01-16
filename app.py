@@ -30,14 +30,13 @@ class App:
         except:
             pass
         logger.debug(f"self.init: {self.init}")
-        logger.debug(f"self.init and self.app_backend.game_id is None: {self.init and self.app_backend.game_id is None}")
+        logger.debug(
+            f"self.init and self.app_backend.game_id is None: {self.init and self.app_backend.game_id is None}"
+        )
         if not self.init or (self.init and self.app_backend.game_id is None):
             delete_item("Load Game")
             self.load_game()
             self.error_window("Please create or choose a game.")
-
-    def close_window(self, sender, data) -> None:
-        delete_item(sender)
 
     def update_game_id_text(self, game_id: int) -> None:
         set_value("game_id_display", f"Game ID: {game_id}")
@@ -182,10 +181,6 @@ class App:
         for game in games:
             add_row(table_name, [f"{game['game_id']}", f"{game['created_datetime']}"])
 
-    def close_open_game(self, sender, data) -> None:
-        self.verify_game(None, None)
-        delete_item("Open Game")
-
     def check_numbers(self, numbers: list) -> tuple:
         valid = False
         index = 0
@@ -267,17 +262,6 @@ class App:
                 )
                 add_button("Close Window", callback=self.close_create_ticket_window)
 
-    def close_create_ticket_window(self, sender, data) -> None:
-        delete_item("Confirm new ticket")
-
-    def error_window(self, error: str) -> None:
-        with window("Error", on_close=self.close_window):
-            add_text(error)
-            add_button("OK", callback=self.close_error)
-
-    def close_error(self, sender, data) -> None:
-        delete_item("Error")
-
     def open_ticket(self, sender, data) -> None:
         if isinstance(data, list):
             path = f"{data[0]}/{data[1]}"
@@ -289,6 +273,19 @@ class App:
         self.app_backend.open_ticket(path)
         os.chdir(get_value("original_path"))
 
+    def close_window(self, sender, data) -> None:
+        delete_item(sender)
+
+    def close_error(self, sender, data) -> None:
+        delete_item("Error")
+
+    def close_open_game(self, sender, data) -> None:
+        self.verify_game(None, None)
+        delete_item("Open Game")
+
+    def close_create_ticket_window(self, sender, data) -> None:
+        delete_item("Confirm new ticket")
+
     def reset_window(self, sender, data) -> None:
         with window("Reset#", autosize=True):
             add_text(
@@ -296,6 +293,11 @@ class App:
                 parent="Reset#",
             )
             add_button("Confirm", callback=self.reset_callback)
+
+    def error_window(self, error: str) -> None:
+        with window("Error", on_close=self.close_window):
+            add_text(error)
+            add_button("OK", callback=self.close_error)
 
     def create_game_window(self, sender, data) -> None:
         try:
@@ -346,7 +348,7 @@ class App:
         except:
             return
         if platform.system() == "Windows":
-            original_path = os.getenv('APPDATA')
+            original_path = os.getenv("APPDATA")
             path = f"{original_path}\\tickets\\game_{self.app_backend.game_id}"
         else:
             original_path = os.getcwd()
