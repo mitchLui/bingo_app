@@ -37,6 +37,9 @@ class App:
             delete_item("Load Game")
             self.load_game()
             self.error_window("Please create or choose a game.")
+            return False
+        else:
+            return True
 
     def update_game_id_text(self, game_id: int) -> None:
         set_value("game_id_display", f"Game ID: {game_id}")
@@ -327,10 +330,9 @@ class App:
         try:
             self.close_window("Create New Ticket", None)
             self.close_window("Load Game", None)
-            self.verify_game(None, None)
         except Exception:
             return
-        else:
+        if self.verify_game(None, None):
             with window("Create New Ticket", autosize=True, on_close=self.close_window):
                 add_input_text("Name", source="ticket_name")
                 add_input_text("Amount", source="bet_amount")
@@ -343,19 +345,16 @@ class App:
                 add_button("Create Ticket", callback=self.create_ticket)
 
     def open_ticket_window(self, sender, data) -> None:
-        try:
-            self.verify_game(None, None)
-        except:
-            return
-        if platform.system() == "Windows":
-            original_path = os.getenv("APPDATA")
-            path = f"{original_path}\\tickets\\game_{self.app_backend.game_id}"
-        else:
-            original_path = os.getcwd()
-            path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}"
-        os.chdir(path)
-        set_value("original_path", original_path)
-        open_file_dialog(callback=self.open_ticket)
+        if self.verify_game(None, None):
+            if platform.system() == "Windows":
+                original_path = os.getenv("APPDATA")
+                path = f"{original_path}\\tickets\\game_{self.app_backend.game_id}"
+            else:
+                original_path = os.getcwd()
+                path = f"{os.getcwd()}/tickets/game_{self.app_backend.game_id}"
+            os.chdir(path)
+            set_value("original_path", original_path)
+            open_file_dialog(callback=self.open_ticket)
 
     def load_game(self) -> None:
         with window("Load Game", autosize=True, on_close=self.verify_game):
