@@ -82,6 +82,24 @@ class App:
         )
         add_text("Winning numbers:", parent=self.app_name)
         add_spacing(name="block", parent=self.app_name)
+        main_window_size = get_main_window_size()
+        x_pos = int(main_window_size[0] / 2) - 160
+        y_pos = int(main_window_size[1] / 2) - 160
+        with window(
+            "Number",
+            x_pos=x_pos,
+            y_pos=y_pos,
+            width=200,
+            height=200,
+            no_move = True,
+            no_scrollbar=True,
+            no_resize=True,
+            no_close=True,
+            no_collapse=True,
+        ):
+            # TODO
+            add_drawing("num_drawing", parent="Number", width=1000, height=1500)
+            draw_text("num_drawing", [25.0, 25.0], "", size=10)
 
     def get_combination_all(self, sender, combination) -> list:
         write_text = []
@@ -98,18 +116,30 @@ class App:
         write_text = []
         try:
             i = 1
-            for index in range(0, len(combination), 5):
-                for j in range(1, 6):
-                    write_text.append(
-                        {
-                            "source": f"draw_{i}",
-                            "text": " ".join(combination[index : index + j]),
-                        }
-                    )
-                i += 1
+            numbers = []
+            number = 0
+            for index, number in enumerate(combination):
+                element = {
+                    "source": f"draw_{i}",
+                    "text": " ".join(numbers),
+                    "current": number,
+                }
+                if len(numbers) == 5:
+                    numbers.clear()
+                    i += 1
+                numbers.append(number)
+                write_text.append(element)
+            last_elem = {
+                "source": f"draw_{i}",
+                "text": " ".join(numbers),
+                "current": "All numbers are drawn",
+            }
+            write_text.append(last_elem)
+            logger.debug(write_text)
         except Exception:
             logger.error(traceback.format_exc())
         try:
+            logger.debug(write_text)
             last_source = get_data("last_source")
             index = get_data("num_index")
             if index == None:
@@ -129,6 +159,9 @@ class App:
                 )
             else:
                 set_value(current_source, write_text[index]["text"])
+            # TODO
+            clear_drawing("num_drawing")
+            draw_text("num_drawing", [59, 45], write_text[index]["current"], size=60)
             delete_data("num_index")
             add_data("num_index", index + 1)
             delete_data("last_source")
@@ -148,6 +181,7 @@ class App:
         delete_item("Next Number")
         delete_item("Show all numbers")
         delete_item("block")
+        delete_item("Number")
 
     def reset_combination(self, reset_text=True) -> None:
         try:
@@ -375,7 +409,7 @@ class App:
     def load_theme(self) -> None:
         set_main_window_size(1920, 1080)
         set_main_window_resizable(True)
-        add_additional_font("segoe_ui.ttf")
+        add_additional_font("helvetica.ttf")
         set_global_font_scale(1.5)
         set_theme("Classic")
         set_style_window_padding(11.00, 8.00)
