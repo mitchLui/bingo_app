@@ -17,7 +17,7 @@ class App_backend:
         self.db_name = db_name
         self.db = Database(directory, db_name)
         self.game = Game(db=self.db)
-        self.game_id = 0
+        self.game_id = None
 
     def create_game(self) -> None:
         self.game_id = self.db.create_bingo_game()
