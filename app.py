@@ -267,18 +267,6 @@ class App:
                 )
                 add_button("Close Window", callback=self.close_create_ticket_window)
 
-    def create_game_window(self, sender, data) -> None:
-        try:
-            self.close_window("Create New Game", None)
-            self.close_window("Load Game", None)
-            self.reset_combination()
-            self.check_init()
-        except Exception:
-            pass
-        with window("Create New Game", on_close=self.verify_game, autosize=True):
-            add_text("Create a new game?")
-            add_button("Confirm", callback=self.create_game)
-
     def close_create_ticket_window(self, sender, data) -> None:
         delete_item("Confirm new ticket")
 
@@ -308,6 +296,18 @@ class App:
                 parent="Reset#",
             )
             add_button("Confirm", callback=self.reset_callback)
+
+    def create_game_window(self, sender, data) -> None:
+        try:
+            self.close_window("Create New Game", None)
+            self.close_window("Load Game", None)
+            self.reset_combination()
+            self.check_init()
+        except Exception:
+            pass
+        with window("Create New Game", on_close=self.verify_game, autosize=True):
+            add_text("Create a new game?")
+            add_button("Confirm", callback=self.create_game)
 
     def open_game_window(self, sender, data) -> None:
         try:
@@ -368,12 +368,10 @@ class App:
             add_text("Reset complete.\nRestart the app to complete reset.")
             add_button("Close App", callback=self.close_app)
 
-    
-
-    def close_app(self, sender, data):
+    def close_app(self, sender, data) -> None:
         stop_dearpygui()
 
-    def load_theme(self):
+    def load_theme(self) -> None:
         set_main_window_size(1920, 1080)
         set_main_window_resizable(True)
         add_additional_font("segoe_ui.ttf")
@@ -410,8 +408,6 @@ class App:
         set_style_antialiased_fill(True)
         set_style_curve_tessellation_tolerance(1.25)
         set_style_circle_segment_max_error(1.60)
-
-
 
     def show(self) -> None:
         with window(self.app_name):
