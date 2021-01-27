@@ -1,6 +1,8 @@
-# Bingo App
+# Mark Six
 
-A Python App for playing a version of bingo.
+**This project was originally a commission but project was abandoned by client. Further development might take place but is unlikely.**
+
+A Python app for playing a variation of the Mark Six game.
 
 ---
 
